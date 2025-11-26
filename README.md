@@ -1,38 +1,48 @@
-# sv
+# SvelteKit + Firebase + Tailwind Template
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A minimal SvelteKit template with Firebase and Tailwind CSS pre-configured.
 
-## Creating a project
+## Tech Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **SvelteKit 2** with Svelte 5
+- **Firebase** (Auth & Firestore)
+- **Tailwind CSS 4**
+- **shadcn-svelte** (Button, Card, Input components included)
+- **TypeScript**
 
+## Setup
+
+1. Install dependencies:
+   ```sh
+   npm install
+   ```
+
+2. Configure Firebase:
+   - Create a project at [Firebase Console](https://console.firebase.google.com)
+   - Copy `.env.example` to `.env` and fill in your Firebase config
+
+3. Run development server:
+   ```sh
+   npm run dev
+   ```
+
+## Adding UI Components
+
+Add more shadcn-svelte components as needed:
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npx shadcn-svelte@latest add [component]
 ```
 
 ## Building
 
-To create a production version of your app:
-
 ```sh
 npm run build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Deployment
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Configured for Vercel/Firebase Hosting. Deploy with:
+```sh
+firebase deploy --only hosting
+```

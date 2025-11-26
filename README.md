@@ -7,13 +7,14 @@ A modern, minimal SvelteKit template with Firebase backend and Tailwind CSS styl
 - **Svelte 5** with runes (`$state`, `$derived`, `$effect`, `$props`)
 - **SvelteKit 2** with SSR/SSG support
 - **Firebase** Authentication & Firestore
-- **Tailwind CSS 4** with CSS variables theming
+- **Tailwind CSS 4** with OKLCH color values and **Clean Slate theme**
 - **shadcn-svelte** UI components (Button, Card, Input included)
 - **TypeScript** in strict mode
 - **Zod** schema validation with example schemas
 - **svelte-sonner** toast notifications
 - **Prettier + ESLint** code formatting and linting
-- **Dark mode** ready with CSS variables
+- **Dark/Light mode** with seamless theme switching
+- **Tech stack showcase page** demonstrating the template design system
 
 ## Tech Stack
 
@@ -76,7 +77,11 @@ PUBLIC_FIREBASE_APP_ID=your_app_id
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173)
+Open [http://localhost:5173](http://localhost:5173) to see:
+
+- **Tech stack showcase** with interactive theme switching
+- **Component demonstrations** using shadcn-svelte
+- **Clean Slate theme** in both light and dark modes
 
 ## Project Structure
 
@@ -253,22 +258,49 @@ npm run build
 
 ### Theming
 
-Edit CSS variables in `src/routes/layout.css`:
+Template uses **Clean Slate theme** with OKLCH color values for better color consistency. Edit CSS variables in `src/routes/layout.css`:
 
 ```css
 :root {
-	--background: 0 0% 100%;
-	--foreground: 222.2 84% 4.9%;
-	--primary: 222.2 47.4% 11.2%;
-	--primary-foreground: 210 40% 98%;
-	/* ... */
+  --background: oklch(0.9842 0.0034 247.8575);
+  --foreground: oklch(0.2795 0.0368 260.0310);
+  --primary: oklch(0.5854 0.2041 277.1173);
+  --primary-foreground: oklch(1.0000 0 0);
+  /* ... */
 }
 
 .dark {
-	--background: 222.2 84% 4.9%;
-	--foreground: 210 40% 98%;
-	/* ... */
+  --background: oklch(0.2077 0.0398 265.7549);
+  --foreground: oklch(0.9288 0.0126 255.5078);
+  --primary: oklch(0.6801 0.1583 276.9349);
+  --primary-foreground: oklch(0.2077 0.0398 265.7549);
+  /* ... */
 }
+```
+
+**Theme Toggle Usage:**
+
+```svelte
+<script lang="ts">
+  let darkMode = $state(false);
+  
+  function toggleTheme() {
+    darkMode = !darkMode;
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+</script>
+
+<Button onclick={toggleTheme}>
+  {#if darkMode}
+    <Moon /> <span>Dark</span>
+  {:else}
+    <Sun /> <span>Light</span>
+  {/if}
+</Button>
 ```
 
 ### Firestore Security Rules

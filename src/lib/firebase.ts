@@ -1,7 +1,6 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
-import { browser } from '$app/environment';
 import {
 	PUBLIC_FIREBASE_API_KEY,
 	PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -25,8 +24,6 @@ let firestore: Firestore | undefined;
 let auth: Auth | undefined;
 
 function initFirebase() {
-	if (!browser) return;
-
 	if (!getApps().length) {
 		app = initializeApp(firebaseConfig);
 	} else {

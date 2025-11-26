@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	
-	import { Moon, Sun, Zap, Database, Cloud, Palette, Shield, Rocket, Code } from '@lucide/svelte';
+	import { Moon, Sun, Database, Palette, Shield, Rocket, Layers, FileCode } from '@lucide/svelte';
 
 	let darkMode = $state(false);
 
@@ -28,7 +28,7 @@
 			name: 'Svelte',
 			version: '5.x',
 			description: 'UI framework with Runes reactivity',
-			icon: Zap,
+			icon: Layers,
 			category: 'UI Framework',
 			features: ['Runes', 'No Virtual DOM', 'Compile-time optimization', 'Component-based']
 		},
@@ -36,7 +36,7 @@
 			name: 'TypeScript',
 			version: '5.x',
 			description: 'Type-safe JavaScript with strict mode',
-			icon: Code,
+			icon: FileCode,
 			category: 'Language',
 			features: ['Static typing', 'IntelliSense', 'Better refactoring', 'Compile-time errors']
 		},
@@ -44,7 +44,7 @@
 			name: 'Firebase',
 			version: '12.x',
 			description: 'Authentication and Firestore backend',
-			icon: Cloud,
+			icon: Database,
 			category: 'Backend',
 			features: ['Auth', 'Firestore', 'Real-time database', 'Hosted services']
 		},
@@ -80,12 +80,16 @@
 					<h1 class="text-3xl font-bold text-foreground">Tech Stack Showcase</h1>
 					<p class="text-muted-foreground mt-1">Modern full-stack template built with cutting-edge technologies</p>
 				</div>
-				<div class="flex items-center gap-3">
-					<Sun class="size-5 text-muted-foreground" />
-					<Button variant="outline" size="sm" onclick={toggleTheme}>
-						{darkMode ? '🌙' : '☀️'}
+				<div>
+					<Button variant="outline" size="sm" onclick={toggleTheme} class="flex items-center gap-2">
+						{#if darkMode}
+							<Moon class="size-4" />
+							<span>Dark</span>
+						{:else}
+							<Sun class="size-4" />
+							<span>Light</span>
+						{/if}
 					</Button>
-					<Moon class="size-5 text-muted-foreground" />
 				</div>
 			</div>
 		</div>
@@ -131,8 +135,8 @@
 						Version: {tech.version}
 					</div>
 							<p class="text-sm text-muted-foreground mb-4">{tech.description}</p>
-							<div class="space-y-2">
-								{#each tech.features as feature}
+						<div class="space-y-2">
+							{#each tech.features as feature (feature)}
 									<div class="flex items-center gap-2 text-sm">
 										<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
 										<span class="text-foreground">{feature}</span>

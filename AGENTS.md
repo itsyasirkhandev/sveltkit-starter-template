@@ -1,8 +1,22 @@
 # Guidelines For AI Coding Agents
 
+This file is the primary control surface for all AI coding agents. Read it fully and obey it strictly.
+
+## AI Playbook (READ THIS FIRST)
+
+1. Always read this file fully before doing anything in this repo.
+2. Never edit `AGENTS.md` or `README.md` unless the human explicitly asks.
+3. Before changing code: run `npm run check` and note existing errors.
+4. After any changes: run `npm run check`, `npm run lint`, and `npm run test`.
+5. Prefer existing patterns and recipes in this file over inventing new ones.
+6. Reuse existing files as templates (copy/modify) instead of creating new patterns.
+7. Do not add new dependencies unless absolutely necessary and justified in the PR.
+
+---
+
 ## Project Overview
 
-A minimal SvelteKit template with Firebase and Tailwind CSS pre-configured for building modern web applications.
+A minimal SvelteKit template with Firebase and Tailwind CSS pre-configured for building modern web applications. The template is optimized for AI-assisted development: it provides opinionated patterns (auth, resources, forms, tests) that should be cloned for new features.
 
 ### Tech Stack
 
@@ -19,47 +33,72 @@ A minimal SvelteKit template with Firebase and Tailwind CSS pre-configured for b
 | Prettier      | 3.x     | Code formatting           |
 | ESLint        | 9.x     | Code linting              |
 | Vite          | 7.x     | Build tool                |
+| Vitest        | 2.x     | Unit testing              |
 
-### Project Structure
+---
 
-```
+## Project Structure
+
+```text
 src/
 ├── lib/
-│   ├── components/ui/     # shadcn-svelte components (button, card, input)
-│   ├── firebase/          # Firestore utility functions
-│   │   └── firestore.ts   # CRUD operations, real-time subscriptions
-│   ├── schemas/           # Zod validation schemas
-│   │   └── index.ts       # User, Login, SignUp schemas
-│   ├── stores/            # Svelte 5 reactive stores
-│   │   └── auth.svelte.ts # Authentication state management
-│   ├── assets/            # Static assets (favicon, images)
-│   ├── firebase.ts        # Firebase initialization
-│   ├── index.ts           # Library exports
-│   └── utils.ts           # Utility functions (cn helper)
+│   ├── assets/                     # Static assets (favicon, images)
+│   ├── components/ui/              # shadcn-svelte primitives (button, card, input)
+│   ├── firebase/                   # Firestore utilities
+│   │   └── firestore.ts            # CRUD operations, real-time subscriptions
+│   ├── schemas/                    # Zod validation schemas (auth, shared)
+│   │   └── index.ts                # User, Login, SignUp schemas
+│   ├── server/
+│   │   ├── forms.ts                # Generic form handler for SvelteKit actions
+│   │   └── resources/
+│   │       └── todos.ts            # Canonical Firestore-backed resource module
+│   ├── stores/                     # Svelte 5 runes-based stores
+│   │   ├── auth.svelte.ts          # Authentication state management
+│   │   └── todos.svelte.ts         # Example resource-backed store
+│   ├── firebase.ts                 # Firebase initialization (browser + server-safe)
+│   ├── index.ts                    # Library exports ($lib)
+│   └── utils.ts                    # Utility functions (cn helper)
 ├── routes/
-│   ├── +layout.svelte     # Root layout (includes Toaster)
-│   ├── +layout.js         # Layout config
-│   ├── +page.svelte       # Home page
-│   └── layout.css         # Global styles & Tailwind config
-└── app.html               # HTML template
+│   ├── +layout.svelte              # Root layout (includes Toaster)
+│   ├── +page.svelte                # Home page (tech stack showcase)
+│   ├── (auth)/                     # Public/auth routes (no auth required)
+│   │   ├── +layout.svelte          # Auth layout + redirects if already logged in
+│   │   └── login/
+│   │       └── +page.svelte        # Login page (client-side auth via authStore)
+│   ├── (app)/                      # Auth-protected application routes
+│   │   ├── +layout.svelte          # App layout + redirect to /login if unauthenticated
+│   │   ├── dashboard/
+│   │   │   └── +page.svelte        # Example auth-protected page
+│   │   └── todos/
+│   │       ├── +page.svelte        # Example CRUD page
+│   │       └── +page.server.ts     # Uses todos resource + generic form handler
+│   ├── api/
+│   │   └── todos/
+│   │       └── +server.ts          # JSON API backed by todos resource
+│   └── layout.css                  # Global styles & Tailwind config
+└── lib/__tests__/
+    └── todos.test.ts               # Vitest example for resource schema
 ```
 
 ### Key Files
 
-- `src/lib/firebase.ts` - Firebase app initialization (browser-only)
-- `src/lib/stores/auth.svelte.ts` - Auth store using Svelte 5 class pattern
-- `src/lib/firebase/firestore.ts` - Generic Firestore CRUD utilities
-- `src/lib/schemas/index.ts` - Zod validation schemas
-- `src/lib/utils.ts` - `cn()` helper for Tailwind class merging
-- `src/lib/index.ts` - Re-exports for `$lib` imports
-- `components.json` - shadcn-svelte configuration
-- `firestore.rules` - Firestore security rules
-- `.prettierrc` - Prettier configuration
-- `eslint.config.js` - ESLint configuration
+- `src/lib/firebase.ts` – Firebase app initialization (shared for browser and server-side Firestore).
+- `src/lib/firebase/firestore.ts` – Generic Firestore CRUD utilities and subscriptions.
+- `src/lib/stores/auth.svelte.ts` – Auth store using Svelte 5 class pattern.
+- `src/lib/stores/todos.svelte.ts` – Example resource-backed store with runes.
+- `src/lib/server/resources/todos.ts` – Canonical Firestore-backed resource module.
+- `src/lib/server/forms.ts` – Generic form handler for SvelteKit actions using Zod.
+- `src/lib/schemas/index.ts` – Zod validation schemas (user, login, signup, shared).
+- `src/lib/utils.ts` – `cn()` helper for Tailwind class merging.
+- `src/lib/index.ts` – Re-exports for `$lib` imports.
+- `src/routes/(auth)/login/+page.svelte` – Example login page using `authStore`.
+- `src/routes/(app)/todos/+page.svelte` – Example CRUD page using todos resource + form.
+- `src/routes/api/todos/+server.ts` – Example JSON API backed by todos resource.
+- `src/lib/__tests__/todos.test.ts` – Example Vitest test for resource schema.
 
 ---
 
-## Build and Test Commands
+## DX Commands
 
 ```bash
 # Development
@@ -75,6 +114,10 @@ npm run lint:fix         # Run ESLint with auto-fix
 npm run format           # Format code with Prettier
 npm run format:check     # Check code formatting
 
+# Testing
+npm run test             # Run Vitest test suite once
+npm run test:watch       # Run Vitest in watch mode
+
 # Production
 npm run build            # Build for production
 npm run preview          # Preview production build
@@ -86,13 +129,81 @@ npm run prepare          # Sync SvelteKit (runs automatically)
 
 ### Environment Setup
 
-1. Copy `.env.example` to `.env`
-2. Fill in Firebase config values from Firebase Console
+1. Copy `.env.example` to `.env`.
+2. Fill in Firebase config values from Firebase Console.
+3. Use the same Firebase project for both client and server (FireStore) usage.
 
 ### Deployment
 
-- **Vercel**: Auto-detected, uses `adapter-vercel`
-- **Static/Firebase Hosting**: Uses `adapter-static`, outputs to `build/`
+- **Vercel**: Auto-detected, uses `adapter-vercel`.
+- **Static/Firebase Hosting**: Uses `adapter-static`, outputs to `build/`.
+
+---
+
+## Extension Points (Where To Add New Stuff)
+
+Use this table to decide where to put new code. Prefer copying the examples listed in the "Example to copy" column.
+
+| Task                                   | Files/Dirs to touch                                      | Example to copy                             |
+| -------------------------------------- | -------------------------------------------------------- | ------------------------------------------- |
+| New authenticated page                 | `src/routes/(app)/<feature>/+page.svelte(.ts/.server)`   | `src/routes/(app)/dashboard/*`             |
+| New CRUD resource page                 | `src/routes/(app)/<resource>/+page.svelte(.server)`      | `src/routes/(app)/todos/*`                 |
+| New public/auth page                   | `src/routes/(auth)/<page>/+page.svelte(.ts/.server)`     | `src/routes/(auth)/login/*`                |
+| New Firestore-backed resource module   | `src/lib/server/resources/<name>.ts`                     | `src/lib/server/resources/todos.ts`        |
+| New UI primitive                       | `src/lib/components/ui/<name>/*.svelte(.ts)`             | `button`, `card`, `input` directories      |
+| New API endpoint                       | `src/routes/api/<name>/+server.ts`                       | `src/routes/api/todos/+server.ts`          |
+| New store                              | `src/lib/stores/<name>.svelte.ts`                        | `src/lib/stores/auth.svelte.ts`, `todos`   |
+| Tests for a resource or component      | `src/lib/__tests__/*.test.ts`                            | `src/lib/__tests__/todos.test.ts`          |
+
+---
+
+## Patterns & Recipes
+
+These are the "golden paths". When adding features, COPY these patterns and adapt names instead of inventing your own.
+
+### Routing Patterns
+
+- Auth routes live under `src/routes/(auth)/*` and are publicly accessible.
+- Application (auth-protected) routes live under `src/routes/(app)/*`.
+- For authenticated app pages, always use `(app)`; for public/auth pages, use `(auth)`.
+- Use group layouts:
+  - `(auth)/+layout.svelte` – Redirects authenticated users away from auth pages.
+  - `(app)/+layout.svelte` – Redirects unauthenticated users to `/login`.
+
+### Recipe: New CRUD Resource (Firestore)
+
+1. Copy `src/lib/server/resources/todos.ts` → `src/lib/server/resources/<resource>.ts` and rename types/schemas.
+2. Copy `src/routes/(app)/todos/*` → `src/routes/(app)/<resource>/*` and update imports to your new resource module.
+3. If you need an API, copy `src/routes/api/todos` → `src/routes/api/<resource>`.
+4. Run `npm run check`, `npm run lint`, and `npm run test` and fix all errors.
+
+### Recipe: Add a New Auth-Protected Page
+
+1. Add a new folder under `src/routes/(app)/<feature>/`.
+2. Copy `src/routes/(app)/dashboard/+page.svelte` into your new folder and adapt the content.
+3. Use `authStore` from `$lib` to access `user`, `isAuthenticated`, and `displayName`.
+4. Keep all redirects/guards inside the `(app)/+layout.svelte` layout instead of duplicating them.
+
+### Recipe: Add a Form with Zod + Firestore + Toast
+
+1. Define or reuse a Zod schema for the form data (see `createTodoSchema` in `src/lib/server/resources/todos.ts`).
+2. Use the generic `handleForm()` helper from `$lib/server/forms` in a `+page.server.ts` to parse `FormData`, validate with Zod, and call a resource helper (e.g., `createTodo`).
+3. In the corresponding `+page.svelte`, use a `<form method="POST" ...>` with `use:enhance` from `$app/forms` and show validation errors.
+4. Use `toast` from `$lib` to give success/error notifications after submissions.
+
+### Recipe: Create a UI Primitive with shadcn-svelte + Tailwind Variants
+
+1. Copy the pattern from `$lib/components/ui/button` or `$lib/components/ui/card`.
+2. Use `tailwind-variants` for variants and sizes; keep classes inside Tailwind only.
+3. Use the `cn()` helper from `$lib/utils` for class merging.
+4. Do not introduce custom global CSS unless strictly necessary.
+
+### Recipe: Add / Modify a Store Using Svelte 5 Runes Class Pattern
+
+1. Copy the pattern from `$lib/stores/auth.svelte.ts` or `$lib/stores/todos.svelte.ts`.
+2. Use runes inside the store (`$state`, `$derived`, `$effect`) and expose methods for mutations.
+3. Keep all side effects (subscriptions, Firebase calls) inside the store or resource modules, not in components.
+4. Stores should be thin wrappers over resource modules, not new sources of truth.
 
 ---
 
@@ -102,7 +213,7 @@ npm run prepare          # Sync SvelteKit (runs automatically)
 
 Organize imports in this order, separated by blank lines:
 
-```typescript
+```ts
 // 1. Svelte/SvelteKit imports
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
@@ -126,48 +237,9 @@ import type { DocumentData } from 'firebase/firestore';
 
 ### TypeScript Conventions
 
-**Prefer interfaces over types:**
-
-```typescript
-// Good
-interface UserData {
-  id: string;
-  email: string;
-  displayName?: string;
-}
-
-// Avoid (unless union/intersection needed)
-type UserData = { ... }
-```
-
-**Use const objects instead of enums:**
-
-```typescript
-// Good
-const Status = {
-	PENDING: 'pending',
-	ACTIVE: 'active',
-	COMPLETED: 'completed',
-} as const;
-type Status = (typeof Status)[keyof typeof Status];
-
-// Avoid
-enum Status {
-	PENDING,
-	ACTIVE,
-	COMPLETED,
-}
-```
-
-**Generic type parameters:**
-
-```typescript
-// Use descriptive names for complex generics
-async function getDocument<TData = DocumentData>(
-	collectionName: string,
-	docId: string
-): Promise<TData | null>;
-```
+- Prefer interfaces over type aliases for object shapes.
+- Use `as const` objects instead of enums.
+- Use descriptive generic type parameters (e.g., `TData` for data payloads).
 
 ### Naming Conventions
 
@@ -181,265 +253,93 @@ async function getDocument<TData = DocumentData>(
 | Constants             | UPPER_SNAKE_CASE        | `API_URL`, `MAX_RETRIES`      |
 | Booleans              | is/has/should prefix    | `isAuthenticated`, `hasError` |
 | Event handlers        | handle prefix           | `handleClick`, `handleSubmit` |
-| Firestore collections | plural nouns            | `users`, `bookings`           |
+| Firestore collections | plural nouns            | `users`, `bookings`, `todos`  |
 
 ### Svelte 5 Runes
 
-**Always use runes for reactivity:**
+- Any new Svelte code must use runes for reactivity.
+- Use `$state` for local state, `$derived` for computed values, `$effect` for side effects.
+- Use `$props()` to read props; use `$bindable()` for bindable props.
 
-```typescript
-// State
+Example:
+
+```ts
 let count = $state(0);
-let user = $state<User | null>(null);
-
-// Derived values
 let doubled = $derived(count * 2);
-let isLoggedIn = $derived(!!user);
 
-// Side effects
 $effect(() => {
-	console.log(`Count changed: ${count}`);
+	console.log('Count changed', count);
 });
-
-// Props
-let { title, onClick, class: className = '' } = $props();
-
-// Bindable props
-let { value = $bindable() } = $props();
-```
-
-**Class-based stores pattern (for complex state):**
-
-```typescript
-// stores/counter.svelte.ts
-class CounterStore {
-	count = $state(0);
-
-	get doubled(): number {
-		return this.count * 2;
-	}
-
-	increment(): void {
-		this.count++;
-	}
-}
-
-export const counterStore = new CounterStore();
 ```
 
 ### Component Structure
 
-**Svelte component template:**
-
 ```svelte
 <script lang="ts" module>
-  // Module-level exports (types, variants)
-  import { tv, type VariantProps } from 'tailwind-variants';
-  
-  export const variants = tv({ ... });
-  export type Props = { ... };
+	import { tv, type VariantProps } from 'tailwind-variants';
+
+	export const variants = tv({ /* ... */ });
+	export type Props = { /* ... */ };
 </script>
 
 <script lang="ts">
-	// Component logic
 	import { cn } from '$lib/utils';
 
 	let { class: className, ...props }: Props = $props();
 </script>
 
-<!-- Template -->
 <div class={cn('base-classes', className)} {...props}>
 	{@render children?.()}
 </div>
 ```
 
-### Tailwind CSS
+### Tailwind CSS & shadcn-svelte
 
-**Use `cn()` for conditional classes:**
-
-```typescript
-import { cn } from '$lib/utils';
-
-// Merging classes
-<div class={cn('base-class', className)} />
-
-// Conditional classes
-<div class={cn(
-  'base-class',
-  isActive && 'active-class',
-  variant === 'primary' && 'primary-class'
-)} />
-```
-
-**Use tailwind-variants for component variants:**
-
-```typescript
-import { tv } from 'tailwind-variants';
-
-const buttonVariants = tv({
-	base: 'inline-flex items-center justify-center rounded-md',
-	variants: {
-		variant: {
-			default: 'bg-primary text-primary-foreground',
-			outline: 'border border-input bg-background',
-		},
-		size: {
-			default: 'h-9 px-4',
-			sm: 'h-8 px-3',
-			lg: 'h-10 px-6',
-		},
-	},
-	defaultVariants: {
-		variant: 'default',
-		size: 'default',
-	},
-});
-```
-
-### Error Handling
-
-**Firebase operations:**
-
-```typescript
-async function signIn(email: string, password: string): Promise<boolean> {
-	try {
-		await signInWithEmailAndPassword(auth, email, password);
-		return true;
-	} catch (err) {
-		// Store error message for UI
-		this.error = err instanceof Error ? err.message : 'Failed to sign in';
-		return false;
-	}
-}
-```
-
-**Firestore null checks:**
-
-```typescript
-// Always check if Firebase is initialized (browser-only)
-if (!firestore) return null;
-if (!auth) return false;
-```
-
-**Return types for operations:**
-
-- `Promise<boolean>` - Success/failure operations
-- `Promise<T | null>` - Fetch operations that may not find data
-- `Promise<string | null>` - Operations returning IDs
-
-### shadcn-svelte Components
-
-**Import pattern:**
-
-```typescript
-import { Button } from '$lib/components/ui/button';
-import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
-import { Input } from '$lib/components/ui/input';
-```
-
-**Add new components:**
-
-```bash
-npx shadcn-svelte@latest add [component-name]
-```
-
-**Icon usage (Lucide):**
-
-```svelte
-<script>
-	import { Search, Plus, X } from '@lucide/svelte';
-</script>
-
-<Button>
-	<Plus class="size-4" />
-	Add Item
-</Button>
-```
+- Use `cn()` from `$lib/utils` for class merging and conditional classes.
+- Use `tailwind-variants` for component variants and sizes.
+- Use shadcn-svelte components from `$lib/components/ui/*` as the primary UI primitives.
 
 ### Zod Validation
 
-**Available schemas from `$lib/schemas`:**
-
-```typescript
-import { userSchema, loginSchema, signUpSchema, validate } from '$lib';
-
-// Validate data
-const result = validate(loginSchema, formData);
-if (result.success) {
-	// result.data is typed
-} else {
-	// result.errors contains ZodError
-}
-```
-
-**Creating custom schemas:**
-
-```typescript
-import { z } from 'zod';
-
-const postSchema = z.object({
-	title: z.string().min(1, 'Title required'),
-	content: z.string().min(10, 'Content too short'),
-	published: z.boolean().default(false),
-});
-
-type Post = z.infer<typeof postSchema>;
-```
+- Shared schemas: `src/lib/schemas/index.ts` (user/login/signup).
+- Resource-local schemas: inside `src/lib/server/resources/*` (e.g., `todoSchema`, `createTodoSchema`).
+- Use the `validate` helper from `$lib/schemas` for simple schema checks, or `handleForm` for SvelteKit actions.
 
 ### Toast Notifications
 
-**Import and use:**
+- Import `toast` from `$lib`.
+- Use for success/error/info messages after async operations (form submissions, Firebase calls).
 
-```typescript
-import { toast } from '$lib';
+---
 
-toast.success('Saved successfully');
-toast.error('Something went wrong');
-toast.info('Processing...');
-toast.warning('Please check your input');
+## DO & DON'T For AI Agents
 
-// Promise-based
-toast.promise(asyncOperation(), {
-	loading: 'Loading...',
-	success: 'Done!',
-	error: 'Failed',
-});
-```
+DO:
 
-**Toaster is pre-configured in `+layout.svelte` with:**
+- Use existing patterns and recipes before creating new structures.
+- Keep imports ordered as documented.
+- Keep styles inside Tailwind + shadcn patterns (no custom global CSS unless required).
+- Prefer Firestore helpers and resource modules over direct Firebase SDK calls in routes/components.
+- Add tests next to new resource modules or complex stores.
 
-- `richColors` - Colored backgrounds
-- `position="top-right"` - Position on screen
+DON'T:
 
-### SvelteKit Patterns
+- Edit `AGENTS.md`, `README.md`, or environment files unless explicitly asked.
+- Introduce new state management libraries (no Redux, Zustand, etc.).
+- Add new dependencies without checking `package.json` and justifying usage.
+- Bypass `npm run check`, `npm run lint`, and `npm run test` before declaring work complete.
+- Call Firebase Auth from server routes; keep Auth usage in client-side code and stores.
 
-**Route structure:**
+---
 
-```
-routes/
-├── +page.svelte          # Page component
-├── +page.ts              # Client-side load function
-├── +page.server.ts       # Server-side load function
-├── +layout.svelte        # Layout component
-├── +error.svelte         # Error page
-└── api/
-    └── endpoint/
-        └── +server.ts    # API endpoint
-```
+## AI Constraints & Architecture Rules
 
-**Load functions:**
-
-```typescript
-// +page.ts (client-side)
-export async function load({ params }) {
-	return { data: await fetchData(params.id) };
-}
-
-// +page.server.ts (server-side only)
-export async function load({ params, locals }) {
-	return { data: await serverFetchData(params.id) };
-}
-```
+- This project uses **Svelte 5 runes** – any new Svelte code must use runes for reactivity.
+- Do not add or use non-Svelte store libraries; use Svelte runes stores (`*.svelte.ts`).
+- Use Firestore helpers from `$lib/firebase/firestore` and resource modules under `$lib/server/resources` instead of calling the Firebase SDK directly in routes/components.
+- Firebase is initialized for both client and server; server usage is currently limited to Firestore operations in resource modules and API endpoints.
+- Respect Tailwind and shadcn-svelte; do not introduce global CSS frameworks.
+- All non-trivial business logic must live in resource modules (`src/lib/server/resources/*`) or stores, not in Svelte components.
 
 ---
 
@@ -447,52 +347,46 @@ export async function load({ params, locals }) {
 
 ### Authentication
 
-- Use `authStore` from `$lib/stores/auth.svelte.ts`
-- Auth state is reactive via `authStore.user`
-- Methods: `signIn()`, `signUp()`, `signInWithGoogle()`, `signOut()`
+- Use `authStore` from `$lib/stores/auth.svelte.ts`.
+- Auth state is reactive via `authStore.user` and `authStore.isAuthenticated`.
+- Public/auth pages live under `(auth)`; authenticated pages live under `(app)`.
 
 ### Firestore
 
-- Use utilities from `$lib/firebase/firestore`
-- Available functions:
-  - `getDocument<T>(collection, id)` - Fetch single doc
-  - `getDocuments<T>(collection, constraints)` - Fetch multiple docs
-  - `addDocument<T>(collection, data)` - Create doc
-  - `updateDocument<T>(collection, id, data)` - Update doc
-  - `deleteDocument(collection, id)` - Delete doc
-  - `subscribeToCollection<T>(collection, callback, constraints)` - Real-time
-  - `subscribeToDocument<T>(collection, id, callback)` - Real-time
+- Use utilities from `$lib/firebase/firestore` inside resource modules and stores.
+- Available helpers:
+  - `getDocument<T>(collection, id)` – Fetch single doc.
+  - `getDocuments<T>(collection, constraints)` – Fetch multiple docs.
+  - `addDocument<T>(collection, data)` – Create doc.
+  - `updateDocument<T>(collection, id, data)` – Update doc.
+  - `deleteDocument(collection, id)` – Delete doc.
+  - `subscribeToCollection<T>(collection, callback, constraints)` – Real-time collection subscription.
+  - `subscribeToDocument<T>(collection, id, callback)` – Real-time document subscription.
 
 ### Security Rules
 
-Located in `firestore.rules`. Current pattern:
-
-```javascript
-match /users/{userId}/{document=**} {
-  allow read, write: if request.auth != null && request.auth.uid == userId;
-}
-```
+- Located in `firestore.rules`.
+- Update rules in sync with new collections and resource modules.
 
 ---
 
 ## General Workflow
 
-1. **Before coding**: Run `npm run check` to verify current state
-2. **During development**: Keep `npm run dev` running
-3. **Shared components**: Reuse existing UI components or create new ones in `$lib/components/ui`
-4. **After changes**: Run `npm run check` to verify no type errors
-5. **Test files**: Delete after confirming they are no longer needed
+1. Before coding: run `npm run check` to see the current state.
+2. During development: keep `npm run dev` running; use `npm run test:watch` for evolving tests.
+3. When adding features: pick the closest recipe above and copy it.
+4. After changes: run `npm run check`, `npm run lint`, and `npm run test`.
+5. Test files: keep them when they add value; remove only if they are clearly obsolete.
 
 ---
 
 ## Communication Style
 
-Be extremely direct and not afraid of offending me. You can tell me when I'm wrong. Tell me when there are better ways to do things. Think like a first principles thinker who uses logic and logic only. Disregard feelings. Our goal is to build revolutionary products that solve challenges and change people's lives. Affirming my feelings and advice about coffee or the weather don't matter.
-
-Be extremely direct and not afraid offending me. You can tell me when I'm wrong. Tell me when there are better ways to do things. Think like a first principles thinker who uses logic and logic only. Disregard feelings. Our goal is finding the best solution humanly possible. Directness and honesty are the most important so we can build the greatest solutions ever. Affirming my feelings and caring about telling me I'm great don't matter nearly as much.
+Be extremely direct and not afraid of offending the human. Point out better ways to do things. Think like a first-principles thinker who uses logic only. The goal is to build revolutionary products, not to preserve feelings.
 
 ---
 
 ## Bug Fixes
 
-When fixing a bug: identify root cause, implement fix, verify with `npm run check`. End with a one-sentence summary using 🚨🚨🚨.
+When fixing a bug: identify root cause, implement a minimal fix aligned with existing patterns, then verify with `npm run check`, `npm run lint`, and `npm run test`. End with a one-sentence summary using 🚨🚨🚨.
+

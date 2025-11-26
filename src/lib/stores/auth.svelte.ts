@@ -7,7 +7,7 @@ import {
 	GoogleAuthProvider,
 	signInWithPopup,
 	updateProfile,
-	type User
+	type User,
 } from 'firebase/auth';
 import { browser } from '$app/environment';
 

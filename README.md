@@ -10,19 +10,26 @@ A modern, minimal SvelteKit template with Firebase backend and Tailwind CSS styl
 - **Tailwind CSS 4** with CSS variables theming
 - **shadcn-svelte** UI components (Button, Card, Input included)
 - **TypeScript** in strict mode
+- **Zod** schema validation with example schemas
+- **svelte-sonner** toast notifications
+- **Prettier + ESLint** code formatting and linting
 - **Dark mode** ready with CSS variables
 
 ## Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| SvelteKit | 2.x | Full-stack framework |
-| Svelte | 5.x | UI framework |
-| TypeScript | 5.x | Type safety |
-| Firebase | 12.x | Backend (Auth, Firestore) |
-| Tailwind CSS | 4.x | Styling |
-| shadcn-svelte | latest | UI components |
-| Vite | 7.x | Build tool |
+| Technology    | Version | Purpose                   |
+| ------------- | ------- | ------------------------- |
+| SvelteKit     | 2.x     | Full-stack framework      |
+| Svelte        | 5.x     | UI framework              |
+| TypeScript    | 5.x     | Type safety               |
+| Firebase      | 12.x    | Backend (Auth, Firestore) |
+| Tailwind CSS  | 4.x     | Styling                   |
+| shadcn-svelte | latest  | UI components             |
+| Zod           | 4.x     | Schema validation         |
+| svelte-sonner | 1.x     | Toast notifications       |
+| Prettier      | 3.x     | Code formatting           |
+| ESLint        | 9.x     | Code linting              |
+| Vite          | 7.x     | Build tool                |
 
 ## Quick Start
 
@@ -78,12 +85,13 @@ src/
 ├── lib/
 │   ├── components/ui/     # shadcn-svelte components
 │   ├── firebase/          # Firestore utilities
+│   ├── schemas/           # Zod validation schemas
 │   ├── stores/            # Svelte 5 stores
 │   ├── firebase.ts        # Firebase initialization
 │   ├── index.ts           # Library exports
 │   └── utils.ts           # Utilities (cn helper)
 ├── routes/
-│   ├── +layout.svelte     # Root layout
+│   ├── +layout.svelte     # Root layout (includes Toaster)
 │   ├── +page.svelte       # Home page
 │   └── layout.css         # Global styles
 └── app.html
@@ -95,14 +103,14 @@ src/
 
 ```svelte
 <script lang="ts">
-  import { authStore } from '$lib';
+	import { authStore } from '$lib';
 </script>
 
 {#if authStore.isAuthenticated}
-  <p>Welcome, {authStore.displayName}!</p>
-  <button onclick={() => authStore.signOut()}>Sign Out</button>
+	<p>Welcome, {authStore.displayName}!</p>
+	<button onclick={() => authStore.signOut()}>Sign Out</button>
 {:else}
-  <button onclick={() => authStore.signInWithGoogle()}>Sign In</button>
+	<button onclick={() => authStore.signInWithGoogle()}>Sign In</button>
 {/if}
 ```
 
@@ -118,26 +126,30 @@ const users = await getDocuments('users');
 const id = await addDocument('posts', { title: 'Hello', content: '...' });
 
 // Real-time subscription
-const unsubscribe = subscribeToCollection('posts', (posts) => {
-  console.log(posts);
-}, [where('published', '==', true)]);
+const unsubscribe = subscribeToCollection(
+	'posts',
+	(posts) => {
+		console.log(posts);
+	},
+	[where('published', '==', true)]
+);
 ```
 
 ### UI Components
 
 ```svelte
 <script lang="ts">
-  import { Button } from '$lib/components/ui/button';
-  import { Card, CardHeader, CardContent } from '$lib/components/ui/card';
-  import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Card, CardHeader, CardContent } from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
 </script>
 
 <Card>
-  <CardHeader>Sign Up</CardHeader>
-  <CardContent>
-    <Input type="email" placeholder="Email" />
-    <Button variant="default">Submit</Button>
-  </CardContent>
+	<CardHeader>Sign Up</CardHeader>
+	<CardContent>
+		<Input type="email" placeholder="Email" />
+		<Button variant="default">Submit</Button>
+	</CardContent>
 </Card>
 ```
 
@@ -151,15 +163,58 @@ npx shadcn-svelte@latest add form
 
 Browse all components: [shadcn-svelte.com](https://shadcn-svelte.com)
 
+### Form Validation (Zod)
+
+```typescript
+import { loginSchema, validate, toast } from '$lib';
+
+const formData = { email: 'user@example.com', password: '123456' };
+const result = validate(loginSchema, formData);
+
+if (result.success) {
+	// result.data is typed as LoginForm
+	await authStore.signIn(result.data.email, result.data.password);
+	toast.success('Logged in successfully');
+} else {
+	toast.error(result.errors.issues[0].message);
+}
+```
+
+### Toast Notifications
+
+```typescript
+import { toast } from '$lib';
+
+// Success
+toast.success('Operation completed');
+
+// Error
+toast.error('Something went wrong');
+
+// With options
+toast.info('Processing...', { duration: 5000 });
+
+// Promise-based
+toast.promise(saveData(), {
+	loading: 'Saving...',
+	success: 'Saved!',
+	error: 'Failed to save',
+});
+```
+
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run check` | Run TypeScript/Svelte checks |
-| `npm run check:watch` | Run checks in watch mode |
+| Command                | Description                  |
+| ---------------------- | ---------------------------- |
+| `npm run dev`          | Start development server     |
+| `npm run build`        | Build for production         |
+| `npm run preview`      | Preview production build     |
+| `npm run check`        | Run TypeScript/Svelte checks |
+| `npm run check:watch`  | Run checks in watch mode     |
+| `npm run lint`         | Run ESLint                   |
+| `npm run lint:fix`     | Run ESLint with auto-fix     |
+| `npm run format`       | Format code with Prettier    |
+| `npm run format:check` | Check code formatting        |
 
 ## Deployment
 
@@ -202,17 +257,17 @@ Edit CSS variables in `src/routes/layout.css`:
 
 ```css
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-  /* ... */
+	--background: 0 0% 100%;
+	--foreground: 222.2 84% 4.9%;
+	--primary: 222.2 47.4% 11.2%;
+	--primary-foreground: 210 40% 98%;
+	/* ... */
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  /* ... */
+	--background: 222.2 84% 4.9%;
+	--foreground: 210 40% 98%;
+	/* ... */
 }
 ```
 

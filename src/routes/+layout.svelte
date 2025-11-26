@@ -1,7 +1,8 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	
+	import { Toaster } from 'svelte-sonner';
+
 	let { children } = $props();
 </script>
 
@@ -10,6 +11,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
 
-<div class="min-h-screen bg-background text-foreground">
+<div class="bg-background text-foreground min-h-screen">
 	{@render children()}
 </div>
+
+<Toaster richColors position="top-right" />

@@ -1,3 +1,3 @@
-<div class="min-h-screen flex items-center justify-center">
+<div class="flex min-h-screen items-center justify-center">
 	<h1 class="text-4xl font-bold">Welcome to SvelteKit</h1>
 </div>

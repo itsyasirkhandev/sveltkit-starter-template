@@ -15,7 +15,7 @@ import {
 	serverTimestamp,
 	type DocumentData,
 	type QueryConstraint,
-	type Unsubscribe
+	type Unsubscribe,
 } from 'firebase/firestore';
 
 export type { DocumentData, Unsubscribe };
@@ -54,7 +54,7 @@ export async function addDocument<T extends DocumentData>(
 	const docRef = await addDoc(collection(firestore, collectionName), {
 		...data,
 		createdAt: serverTimestamp(),
-		updatedAt: serverTimestamp()
+		updatedAt: serverTimestamp(),
 	});
 	return docRef.id;
 }
@@ -69,7 +69,7 @@ export async function updateDocument<T extends Partial<DocumentData>>(
 	const docRef = doc(firestore, collectionName, docId);
 	await updateDoc(docRef, {
 		...data,
-		updatedAt: serverTimestamp()
+		updatedAt: serverTimestamp(),
 	});
 	return true;
 }

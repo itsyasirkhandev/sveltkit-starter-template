@@ -11,6 +11,7 @@ This file is the primary control surface for all AI coding agents. Read it fully
 5. Prefer existing patterns and recipes in this file over inventing new ones.
 6. Reuse existing files as templates (copy/modify) instead of creating new patterns.
 7. Do not add new dependencies unless absolutely necessary and justified in the PR.
+8. **Customize shadcn-svelte components** – never ship default/generic styles. Make the UI unique to the app's personality.
 
 ---
 
@@ -27,7 +28,7 @@ A minimal SvelteKit template with Firebase and Tailwind CSS pre-configured for b
 | TypeScript    | 5.x     | Type safety (strict mode) |
 | Firebase      | 12.x    | Auth & Firestore backend  |
 | Tailwind CSS  | 4.x     | Utility-first styling     |
-| shadcn-svelte | latest  | UI component library      |
+| shadcn-svelte | latest  | UI primitives (customize freely) |
 | Zod           | 4.x     | Schema validation         |
 | svelte-sonner | 1.x     | Toast notifications       |
 | Prettier      | 3.x     | Code formatting           |
@@ -197,6 +198,7 @@ These are the "golden paths". When adding features, COPY these patterns and adap
 2. Use `tailwind-variants` for variants and sizes; keep classes inside Tailwind only.
 3. Use the `cn()` helper from `$lib/utils` for class merging.
 4. Do not introduce custom global CSS unless strictly necessary.
+5. **Customize the component's visual style** to match the application's design language (see Design Customization section below).
 
 ### Recipe: Add / Modify a Store Using Svelte 5 Runes Class Pattern
 
@@ -204,6 +206,93 @@ These are the "golden paths". When adding features, COPY these patterns and adap
 2. Use runes inside the store (`$state`, `$derived`, `$effect`) and expose methods for mutations.
 3. Keep all side effects (subscriptions, Firebase calls) inside the store or resource modules, not in components.
 4. Stores should be thin wrappers over resource modules, not new sources of truth.
+
+---
+
+## Design Customization (IMPORTANT FOR AI AGENTS)
+
+**shadcn-svelte components are starting points, not final designs.** You MUST customize them to match each application's unique visual identity and vibe.
+
+### Philosophy
+
+- shadcn-svelte provides accessible, well-tested interaction primitives (focus management, keyboard nav, ARIA).
+- The default styling is intentionally minimal – it's a foundation, NOT the finished product.
+- **Your job is to make the UI feel unique** to the application being built.
+- Creative freedom applies to visuals; accessibility and interaction patterns should remain intact.
+
+### What To Customize
+
+When building any application with this template, customize these aspects of shadcn-svelte components:
+
+| Aspect | How to Customize | Example |
+| ------ | ---------------- | ------- |
+| Colors | Modify Tailwind classes, use CSS variables in `layout.css` | `bg-primary` → `bg-gradient-to-r from-purple-500 to-pink-500` |
+| Border radius | Change `rounded-*` classes | `rounded-md` → `rounded-full` or `rounded-none` |
+| Shadows | Add/modify `shadow-*` classes | Add `shadow-lg shadow-purple-500/20` |
+| Typography | Adjust `text-*`, `font-*` classes | `font-medium` → `font-bold tracking-tight` |
+| Spacing | Modify `p-*`, `m-*`, `gap-*` | Increase padding for a more spacious feel |
+| Animations | Add Tailwind transitions, transforms | `transition-all hover:scale-105` |
+| Borders | Customize `border-*` classes | `border` → `border-2 border-dashed` |
+| Gradients | Apply gradient backgrounds | `bg-white` → `bg-gradient-to-br from-slate-50 to-slate-100` |
+
+### Recipe: Customize Components for Application Vibe
+
+1. **Understand the app's personality** – Is it playful? Professional? Minimalist? Bold? Dark? Light?
+2. **Define a color palette** – Update CSS variables in `src/routes/layout.css` or use Tailwind colors consistently.
+3. **Modify component variants** – Edit `tailwind-variants` definitions in component files to reflect the design language.
+4. **Apply consistent patterns** – If buttons are rounded-full, make all interactive elements rounded-full.
+5. **Add motion thoughtfully** – Use `transition-*` and `hover:*` states to bring the UI to life.
+
+### Example: Transforming a Button
+
+Default shadcn-svelte button:
+```svelte
+<Button>Click me</Button>
+```
+
+Customized for a playful, modern SaaS:
+```svelte
+<Button class="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-xl">
+  Click me
+</Button>
+```
+
+Customized for a minimal, professional app:
+```svelte
+<Button class="rounded-none border-2 border-black bg-transparent text-black hover:bg-black hover:text-white transition-colors font-mono uppercase tracking-widest">
+  Click me
+</Button>
+```
+
+### Updating Component Defaults
+
+To change defaults across the app, modify the `tailwind-variants` configuration in component files:
+
+```ts
+// src/lib/components/ui/button/index.ts
+export const buttonVariants = tv({
+  base: 'inline-flex items-center justify-center rounded-full font-semibold transition-all focus-visible:outline-none focus-visible:ring-2',
+  variants: {
+    variant: {
+      default: 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg hover:shadow-xl hover:scale-105',
+      outline: 'border-2 border-current bg-transparent hover:bg-current hover:text-white',
+      ghost: 'hover:bg-accent/50 backdrop-blur-sm',
+    },
+    // ... sizes, etc.
+  },
+});
+```
+
+### Design Consistency Checklist
+
+Before completing any UI work, verify:
+
+- [ ] Colors are consistent with the app's palette (not default shadcn gray)
+- [ ] Border radius is consistent across all components
+- [ ] Interactive states (hover, focus, active) feel cohesive
+- [ ] Typography hierarchy is clear and matches the app's tone
+- [ ] Spacing feels intentional (not just defaults)
+- [ ] The UI has personality – it doesn't look like "generic shadcn"
 
 ---
 
@@ -298,6 +387,8 @@ $effect(() => {
 - Use `cn()` from `$lib/utils` for class merging and conditional classes.
 - Use `tailwind-variants` for component variants and sizes.
 - Use shadcn-svelte components from `$lib/components/ui/*` as the primary UI primitives.
+- **Always customize component styling** to match the application's design language – never ship default shadcn styles.
+- Leverage Tailwind's full utility set: gradients, shadows, animations, transforms, filters.
 
 ### Zod Validation
 
@@ -321,6 +412,9 @@ DO:
 - Keep styles inside Tailwind + shadcn patterns (no custom global CSS unless required).
 - Prefer Firestore helpers and resource modules over direct Firebase SDK calls in routes/components.
 - Add tests next to new resource modules or complex stores.
+- **Customize shadcn-svelte components** to match the application's unique design and vibe.
+- **Be creative with visuals** – use gradients, shadows, animations, custom color palettes.
+- **Ask about the app's personality** if unclear – playful, professional, minimalist, bold, etc.
 
 DON'T:
 
@@ -329,6 +423,8 @@ DON'T:
 - Add new dependencies without checking `package.json` and justifying usage.
 - Bypass `npm run check`, `npm run lint`, and `npm run test` before declaring work complete.
 - Call Firebase Auth from server routes; keep Auth usage in client-side code and stores.
+- **Ship default/generic shadcn-svelte styling** – always customize to the app's visual identity.
+- **Break accessibility** when customizing – keep focus states, keyboard nav, and ARIA intact.
 
 ---
 

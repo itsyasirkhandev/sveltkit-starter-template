@@ -201,6 +201,10 @@
 			<p class="text-sm text-muted-foreground">
 				Built with SvelteKit + Firebase + Tailwind CSS + shadcn-svelte
 			</p>
+			<p class="mt-1 text-xs text-muted-foreground">
+				Need auth, CRUD, or forms? Check <code>$lib/patterns/*</code> and the (auth)/(app)/todos routes for
+				examples.
+			</p>
 		</div>
 	</footer>
 </div>

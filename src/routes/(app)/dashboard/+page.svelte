@@ -9,6 +9,9 @@
 	}
 </script>
 
+<!-- Example: authenticated dashboard page.
+	See $lib/patterns/auth and $lib/patterns/ui for patterns to build more complex areas. -->
+
 <svelte:head>
 	<title>Dashboard</title>
 </svelte:head>

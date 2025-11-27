@@ -88,19 +88,59 @@ Open [http://localhost:5173](http://localhost:5173) to see:
 ```
 src/
 ├── lib/
-│   ├── components/ui/     # shadcn-svelte components
-│   ├── firebase/          # Firestore utilities
-│   ├── schemas/           # Zod validation schemas
-│   ├── stores/            # Svelte 5 stores
-│   ├── firebase.ts        # Firebase initialization
-│   ├── index.ts           # Library exports
-│   └── utils.ts           # Utilities (cn helper)
+│   ├── assets/                     # Static assets (favicon, images)
+│   ├── components/ui/              # shadcn-svelte primitives (button, card, input)
+│   ├── firebase/                   # Firestore utilities
+│   │   └── firestore.ts            # CRUD operations, real-time subscriptions
+│   ├── patterns/                   # Generic capability patterns (auth, resources, forms, UI)
+│   │   ├── auth/                   # Email/password, Google, and role helpers
+│   │   ├── resources/              # Generic Firestore CRUD + parent/child helpers
+│   │   ├── forms/                  # Basic, multi-step, and upload form patterns
+│   │   ├── ui/                     # List/detail and real-time list patterns
+│   │   └── index.ts                # Registry (authPatterns, resourcePatterns, formPatterns, uiPatterns)
+│   ├── schemas/                    # Zod validation schemas
+│   ├── server/                     # Server-side helpers (forms, resource modules)
+│   ├── stores/                     # Svelte 5 runes-based stores
+│   ├── firebase.ts                 # Firebase initialization
+│   ├── index.ts                    # Library exports ($lib)
+│   └── utils.ts                    # Utilities (cn helper)
 ├── routes/
-│   ├── +layout.svelte     # Root layout (includes Toaster)
-│   ├── +page.svelte       # Home page
-│   └── layout.css         # Global styles
-└── app.html
+│   ├── +layout.svelte              # Root layout (includes Toaster)
+│   ├── +page.svelte                # Home page (tech stack showcase + patterns hint)
+│   ├── (auth)/                     # Public/auth routes (no auth required)
+│   │   ├── +layout.svelte          # Auth layout + redirects if already logged in
+│   │   └── login/                  # Example login page
+│   ├── (app)/                      # Auth-protected application routes
+│   │   ├── +layout.svelte          # App layout + redirect to /login if unauthenticated
+│   │   ├── dashboard/              # Example authenticated dashboard page
+│   │   └── todos/                  # Example Firestore-backed CRUD page
+│   ├── api/
+│   │   └── todos/                  # JSON API backed by todos resource
+│   └── layout.css                  # Global styles & Tailwind config
+└── lib/__tests__/
+    └── todos.test.ts               # Vitest example for resource schema
 ```
+
+## Pattern Library ($lib/patterns)
+
+The template includes a small, generic **pattern library** so you (or an AI agent) can progressively add advanced features (auth, CRUD, complex forms, realtime UIs) without bloating the core app.
+
+- **Auth patterns** – `src/lib/patterns/auth/*`
+  - `email-password.ts` – Helpers around the `authStore` for email/password sign-in/sign-up.
+  - `google.ts` – Helper for Google sign-in using Firebase Auth.
+  - `roles.ts` – Role/claim-based access checks (`hasRole`, `canAccessRoute`).
+- **Resource patterns** – `src/lib/patterns/resources/*`
+  - `crud.ts` – `createCollectionResource()` for generic Firestore collections (todos, projects, notes, etc.).
+  - `related.ts` – `listChildrenByParentId()` for parent/child relations (e.g. project → tasks).
+- **Form patterns** – `src/lib/patterns/forms/*`
+  - `basic.ts` – `handleFormWithSchema()` wrapper over the generic `handleForm` action helper.
+  - `multi-step.ts` – Types and helpers for multi-step wizards.
+  - `file-upload.ts` – Interface for file upload flows (extend when you add Firebase Storage).
+- **UI patterns** – `src/lib/patterns/ui/*`
+  - `list-detail.ts` – List/detail state helpers for dashboards and master/detail views.
+  - `realtime-list.ts` – `createRealtimeListController()` on top of Firestore `subscribeToCollection`.
+
+Use `$lib/patterns` when you want to **add capabilities** (e.g. “add login”, “add a new Firestore-backed resource”, “add a multi-step form”, “add realtime updates”). Use the existing example routes (`(auth)/login`, `(app)/dashboard`, `(app)/todos`, `api/todos`) as concrete reference implementations you can copy and customize.
 
 ## Usage
 

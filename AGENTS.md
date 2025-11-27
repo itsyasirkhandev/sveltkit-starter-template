@@ -47,6 +47,12 @@ src/
 │   ├── components/ui/              # shadcn-svelte primitives (button, card, input)
 │   ├── firebase/                   # Firestore utilities
 │   │   └── firestore.ts            # CRUD operations, real-time subscriptions
+│   ├── patterns/                   # Generic capability patterns (auth, resources, forms, UI)
+│   │   ├── auth/                   # Email/password, Google, and role helpers
+│   │   ├── resources/              # Generic Firestore CRUD + parent/child helpers
+│   │   ├── forms/                  # Basic, multi-step, and upload form patterns
+│   │   ├── ui/                     # List/detail and real-time list patterns
+│   │   └── index.ts                # AI-facing registry (authPatterns, resourcePatterns, ...)
 │   ├── schemas/                    # Zod validation schemas (auth, shared)
 │   │   └── index.ts                # User, Login, SignUp schemas
 │   ├── server/
@@ -61,7 +67,7 @@ src/
 │   └── utils.ts                    # Utility functions (cn helper)
 ├── routes/
 │   ├── +layout.svelte              # Root layout (includes Toaster)
-│   ├── +page.svelte                # Home page (tech stack showcase)
+│   ├── +page.svelte                # Home page (tech stack showcase + patterns hint)
 │   ├── (auth)/                     # Public/auth routes (no auth required)
 │   │   ├── +layout.svelte          # Auth layout + redirects if already logged in
 │   │   └── login/
@@ -89,6 +95,7 @@ src/
 - `src/lib/stores/todos.svelte.ts` – Example resource-backed store with runes.
 - `src/lib/server/resources/todos.ts` – Canonical Firestore-backed resource module.
 - `src/lib/server/forms.ts` – Generic form handler for SvelteKit actions using Zod.
+- `src/lib/patterns/index.ts` – Registry of generic capability patterns (auth, resources, forms, UI).
 - `src/lib/schemas/index.ts` – Zod validation schemas (user, login, signup, shared).
 - `src/lib/utils.ts` – `cn()` helper for Tailwind class merging.
 - `src/lib/index.ts` – Re-exports for `$lib` imports.
@@ -154,6 +161,7 @@ Use this table to decide where to put new code. Prefer copying the examples list
 | New UI primitive                       | `src/lib/components/ui/<name>/*.svelte(.ts)`             | `button`, `card`, `input` directories      |
 | New API endpoint                       | `src/routes/api/<name>/+server.ts`                       | `src/routes/api/todos/+server.ts`          |
 | New store                              | `src/lib/stores/<name>.svelte.ts`                        | `src/lib/stores/auth.svelte.ts`, `todos`   |
+| Generic capability pattern (auth/CRUD/forms/UI) | `src/lib/patterns/**`                                   | Existing pattern modules under `auth`, `resources`, `forms`, `ui` |
 | Tests for a resource or component      | `src/lib/__tests__/*.test.ts`                            | `src/lib/__tests__/todos.test.ts`          |
 
 ---
@@ -191,6 +199,31 @@ These are the "golden paths". When adding features, COPY these patterns and adap
 2. Use the generic `handleForm()` helper from `$lib/server/forms` in a `+page.server.ts` to parse `FormData`, validate with Zod, and call a resource helper (e.g., `createTodo`).
 3. In the corresponding `+page.svelte`, use a `<form method="POST" ...>` with `use:enhance` from `$app/forms` and show validation errors.
 4. Use `toast` from `$lib` to give success/error notifications after submissions.
+
+### Pattern Library ($lib/patterns)
+
+Use the pattern library when the user asks for **capabilities** ("add auth", "add CRUD", "add multi-step form", "add realtime list") rather than specific copies of existing routes.
+
+- `src/lib/patterns/auth/*`  
+  - `email-password.ts` – Wraps `authStore` for email/password auth. Use when user wants basic login/sign-up.  
+  - `google.ts` – Wraps `authStore.signInWithGoogle`. Use when user asks for Google sign-in.  
+  - `roles.ts` – Generic helpers for role/claim-based access control; wire to your auth data.
+- `src/lib/patterns/resources/*`  
+  - `crud.ts` – `createCollectionResource()` for Firestore collections like todos, projects, notes.  
+  - `related.ts` – `listChildrenByParentId()` for parent/child relations (e.g. project → tasks).
+- `src/lib/patterns/forms/*`  
+  - `basic.ts` – `handleFormWithSchema()` wrapper over `server/forms.ts`.  
+  - `multi-step.ts` – Types and helpers for multi-step wizards.  
+  - `file-upload.ts` – Stub for file upload flows (Firebase Storage or similar) when explicitly requested.
+- `src/lib/patterns/ui/*`  
+  - `list-detail.ts` – Generic list/detail state helpers for dashboards and sidebars.  
+  - `realtime-list.ts` – `createRealtimeListController()` on top of `subscribeToCollection`.
+
+AI agents should:
+
+- Prefer `$lib/patterns/*` when **generalizing** behavior (new resources, new auth flows, new UIs).  
+- Use existing routes (`(auth)/login`, `(app)/dashboard`, `(app)/todos`, `api/todos`) as **concrete examples** to copy/adapt when the user references them explicitly.  
+- Keep the template progressive: start from simple pages, then layer in patterns as the app grows in complexity.
 
 ### Recipe: Create a UI Primitive with shadcn-svelte + Tailwind Variants
 

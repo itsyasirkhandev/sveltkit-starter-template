@@ -64,6 +64,9 @@
 	}
 </script>
 
+<!-- Example: email/password + Google auth page.
+	See $lib/patterns/auth for generic authentication patterns. -->
+
 <svelte:head>
 	<title>Login</title>
 </svelte:head>

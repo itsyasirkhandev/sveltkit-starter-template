@@ -30,6 +30,9 @@
 	};
 </script>
 
+<!-- Example: Firestore CRUD page for a todos collection.
+	See $lib/patterns/resources and $lib/patterns/forms for generic patterns. -->
+
 <svelte:head>
 	<title>Todos</title>
 </svelte:head>

@@ -218,6 +218,159 @@ Before merging UI changes built with shadcn-svelte + Tailwind v4, verify:
 - **Architecture**: Components extend shadcn-svelte primitives, use `tailwind-variants` and `cn()`, and leverage `data-slot` where appropriate.
 - **Dark mode & accessibility**: Contrast remains acceptable, focus states are visible, and keyboard navigation remains intact.
 
+### 3.8 Code Optimization Principles & Extended Thinking Framework (LEVER)
+
+These rules apply across **resources**, **stores**, **routes**, and **UI components** in this SvelteKit + Firebase template.
+
+#### Core Philosophy
+
+> "The best code is no code. The second best code is code that already exists and works."
+
+**LEVER framework**:
+- **L – Leverage existing patterns**: Prefer `$lib/server/resources/*`, `$lib/stores/*`, and existing routes over new abstractions.
+- **E – Extend before creating**: Add fields/props/variants to what exists instead of new modules.
+- **V – Verify through reactivity**: Let Svelte runes + Firestore subscriptions drive updates instead of manual syncing.
+- **E – Eliminate duplication**: One source of truth per concern (resource ↔ store ↔ UI).
+- **R – Reduce complexity**: Fewer files, fewer concepts, more reuse.
+
+#### Extended Thinking Decision Tree
+
+Before starting a feature, mentally run this flow (inspired by Anthropic's Extended Thinking):
+
+```mermaid
+graph TD
+    A[New Feature Request] --> B{Can existing code handle it?}
+    B -->|Yes| C[Extend existing code]
+    B -->|No| D{Can we modify existing patterns?}
+    D -->|Yes| E[Adapt and extend]
+    D -->|No| F{Is the new code reusable?}
+    F -->|Yes| G[Create abstraction]
+    F -->|No| H[Reconsider approach]
+    C --> I[Document extensions]
+    E --> I
+    G --> J[Create new pattern]
+    H --> A
+```
+
+#### Pre-Implementation Checklist
+
+**1. Pattern recognition (10–15 minutes, no coding)**
+
+```markdown
+## Existing Pattern Analysis
+- [ ] What similar functionality already exists in $lib/server/resources/* or $lib/stores/*?
+- [ ] Which Firestore helpers or resource functions touch the same data?
+- [ ] What Svelte pages/components already display similar information?
+- [ ] Which stores already manage related state?
+
+## Code Reuse Opportunities
+- [ ] Can I extend an existing resource instead of creating a new one?
+- [ ] Can I add fields to an existing Firestore document/collection instead of a new collection?
+- [ ] Can I enhance an existing store with new derived state?
+- [ ] Can I modify an existing component with conditional rendering instead of duplicating UI?
+```
+
+**2. Complexity assessment (5–10 minutes)**
+
+```markdown
+## Proposed Solution Complexity
+- Lines of new code: ___
+- New files created (routes/resources/stores/components): ___
+- New Firestore collections or indexes: ___
+- New API endpoints: ___
+
+## Optimized Alternative
+- Lines extending existing code: ___
+- Files modified: ___
+- Fields added to existing documents: ___
+- Existing endpoints enhanced: ___
+
+If optimized < 50% of proposed, proceed with optimization-first approach.
+```
+
+#### Architecture Principles (SvelteKit + Firebase)
+
+1. **Data model extensions (Firestore)**
+
+- ❌ **Anti-pattern – new collection for slight variants**
+  - Creating `userCampaigns`, `userTrials`, `userMetrics` collections that mirror `users`.
+- ✅ **Pattern – extend existing documents**
+  - Add optional fields to `users` or the relevant primary collection:
+    - `campaignSource?: string`
+    - `inviteCodeUsed?: string`
+  - Keep related data co-located; reuse existing indexes and resource functions.
+
+2. **Query optimization (resources)**
+
+- ❌ **Anti-pattern – parallel resource functions with overlapping logic**
+  - `getActiveTodos`, `getImportantTodos`, `getTodayTodos` each re-querying Firestore separately.
+- ✅ **Pattern – extend a single status/filters function**
+  - In `src/lib/server/resources/<resource>.ts`, expose one `listX()` that accepts filters and returns richer status fields instead of N variants.
+
+3. **Frontend state management (stores)**
+
+- ❌ **Anti-pattern – multiple overlapping stores**
+  - `todosStore`, `todosFilterStore`, `todosStatsStore` all talking to the same resource separately.
+- ✅ **Pattern – enhance existing store**
+  - Extend `src/lib/stores/todos.svelte.ts` with new `$derived` properties for filters, stats, and UI flags.
+  - Keep Firestore subscriptions and mutations in one place.
+
+#### Firebase / Firestore-Specific Optimizations
+
+1. **Leverage reactivity**
+
+- ❌ **DON'T** manually synchronize local arrays of docs across components.
+- ✅ **DO**:
+  - Use `subscribeToCollection` / `subscribeToDocument` in resource modules or stores.
+  - Expose reactive state via Svelte runes in `.svelte.ts` stores.
+
+2. **Separate client-safe vs server-only logic**
+
+- Keep privileged operations (e.g., role checks, sensitive updates) inside `$lib/server/resources/*` and/or API endpoints under `src/routes/api/*`.
+- Route files and Svelte components should call these helpers; they should not talk directly to Firestore or embed security logic.
+
+3. **Index usage**
+
+- Prefer reusing existing composite indexes defined in `firestore.indexes.json`.
+- Before adding a new index:
+  - Check if the query can be rephrased to use an existing index and an in-memory filter.
+  - Only add when the query is hot and clearly needs it.
+
+#### Decision Framework – Extend vs Create New
+
+Use this scoring system when deciding whether to extend existing code or create something new:
+
+| Criteria                               | Extend Existing | Create New |
+|----------------------------------------|-----------------|-----------:|
+| Similar data structure exists          | +3              |        -3 |
+| Can reuse existing indexes/resources   | +2              |        -2 |
+| Existing routes/stores return related data | +3          |        -3 |
+| UI components show similar info        | +2              |        -2 |
+| Would require < 50 lines to extend     | +3              |        -3 |
+| Would introduce circular deps          | -5              |        +5 |
+| Significantly different domain         | -3              |        +3 |
+
+**Score > 5** → Extend existing code.  
+**Score < -5** → Create new implementation.  
+**Score between -5 and 5** → Do deeper analysis (talk it through, sketch options).
+
+#### Implementation Strategy – Three-Pass Approach
+
+1. **Pass 1 – Discovery (no code)**
+   - Find all related resources, stores, and routes.
+   - Document how data currently flows (Firestore → resources → stores → UI).
+   - Identify the most natural extension point.
+
+2. **Pass 2 – Design (minimal code)**
+   - Adjust types/schemas first (Zod + TS types).
+   - Update resource/store interfaces.
+   - Plan how existing UI will consume the new values (props, slots, derived state).
+
+3. **Pass 3 – Implementation (optimized code)**
+   - Implement using maximum reuse of existing modules.
+   - Add only essential new logic; delete legacy paths.
+   - Document why you chose extension vs new pattern in the PR description.
+
 ---
 
 ## 4. Touch Points / Key Files

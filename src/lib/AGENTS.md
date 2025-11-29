@@ -65,6 +65,59 @@ Keep these green before and after modifying anything under `src/lib/`.
 - ✅ **DO** customize Tailwind classes to match the app vibe (colors, radii, shadows, motion) instead of leaving default shadcn styles.
 - ❌ **DON’T** introduce new global CSS frameworks; stay with Tailwind and component-local styles.
 
+### 3.6 Tailwind CSS Usage Rules (2025)
+
+---
+description: Tailwind CSS usage rules for styling (2025 best practices)
+globs: **/*.{html,js,jsx,ts,tsx,vue,svelte,css,scss,sass,md,mdx,php,blade.php,ejs,hbs,twig,liquid,njk,pug,astro,xml,json,yml,yaml,svg}
+---
+
+#### General Guidelines
+- Use Tailwind utility classes for consistent styling, with custom CSS only for special cases.
+- Organize classes logically (layout, spacing, color, typography).
+- Use responsive and state variants (e.g., `sm:`, `md:`, `lg:`, `hover:`, `focus:`, `dark:`) directly in markup.
+- Embrace Tailwind v4 features like container queries and CSS variables (as in `src/routes/layout.css`).
+- Keep any Tailwind config/design tokens updated (e.g., `@theme` tokens in `layout.css`).
+- Rely on Tailwind classes rather than inline styles or random external CSS for a unified design language.
+
+#### Configuration (CSS Files)
+- Use the `@theme` directive to define custom design tokens like fonts, breakpoints, and colors.
+- Prefer modern color formats such as `oklch` for better color gamut support, defining them in the `:root` scope.
+- Take advantage of automatic content detection, which eliminates the need for a `content` array in configuration.
+- Rely on the Oxide engine to scan project files, excluding those in `.gitignore` and binary extensions.
+- Add specific sources with `@source` only when necessary.
+- Extend Tailwind with custom utilities using the `@utility` directive in CSS files.
+
+#### Styling (CSS Files)
+- Incorporate 3D transform utilities like `rotate-x-*`, `rotate-y-*`, and `scale-z-*` for advanced visual effects.
+- Implement container queries with `@container`, `@max-*`, and `@min-*` utilities for adaptive layouts.
+- Use arbitrary values and properties with square bracket notation (e.g., `[mask-type:luminance]` or `top-[117px]`).
+- Apply modifiers like `hover:` or `lg:` with arbitrary values for flexible styling.
+- Use the `not-*` variant for `:not()` pseudo-classes and the `starting` variant for `@starting-style`.
+- Check browser support for advanced features like `@starting-style` using resources like caniuse.
+
+#### Components (Svelte / HTML)
+- Apply Tailwind utility classes directly in Svelte markup for styling components (`class="flex gap-3 text-sm"`).
+- Use dynamic arbitrary values like `grid-cols-[1fr_500px_2fr]` for flexible layouts.
+- Implement data attribute variants like `data-[current=true]:opacity-100` for conditional styling.
+- Ensure accessibility by pairing Tailwind utilities with appropriate ARIA attributes.
+- Use `aria-hidden="true"` or `role="presentation"` when applying utilities like `hidden` or `sr-only` on purely decorative elements.
+
+#### Components (TypeScript / JavaScript)
+- Prefer TypeScript over plain JavaScript in this project when building utilities or helpers that assemble Tailwind classes.
+- Use dynamic utility classes with template literals or arrays (e.g., `class={`p-${padding} bg-${color}`}` in Svelte) or the `cn()` helper for safer merging.
+- Validate dynamic values with TypeScript types so only supported sizes/colors reach class strings.
+- Integrate Tailwind with Svelte logic via runes and props instead of inline styles.
+- Favor function/component composition over class-based UI patterns.
+
+#### Project-Wide Systems
+- Leverage the Oxide engine's fast build times for performance optimization.
+- Avoid manual content configuration unless explicitly required.
+- Maintain consistency by using theme variables defined in CSS configuration files (e.g., `layout.css`).
+- Reference theme variables in both utility classes and custom CSS (e.g., `text-[--color-primary]`).
+- Update rules regularly to reflect Tailwind v4's evolving feature set.
+- Be aware of deprecated options from v3.x like `text-opacity`.
+
 ---
 
 ## 4. Touch Points / Key Files

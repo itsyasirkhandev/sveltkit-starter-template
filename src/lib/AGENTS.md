@@ -118,6 +118,106 @@ globs: **/*.{html,js,jsx,ts,tsx,vue,svelte,css,scss,sass,md,mdx,php,blade.php,ej
 - Update rules regularly to reflect Tailwind v4's evolving feature set.
 - Be aware of deprecated options from v3.x like `text-opacity`.
 
+### 3.7 shadcn/ui with Tailwind v4 Design System Guidelines
+
+These rules apply to all shadcn-svelte primitives under `src/lib/components/ui/**` and any custom components that build on them.
+
+#### Core Design Principles
+
+1. **Typography system: 4 sizes, 2 weights only**
+   - 4 font sizes:
+     - Size 1 – Large headings (e.g., page titles).
+     - Size 2 – Subheadings/important section titles.
+     - Size 3 – Body text.
+     - Size 4 – Small text/labels.
+   - 2 font weights:
+     - **Semibold** – For headings and emphasis.
+     - **Regular** – For body and most UI text.
+   - Keep a clear hierarchy: no random extra sizes or weights.
+
+2. **8pt grid spacing system**
+   - All spacing values must be divisible by **8 or 4**.
+   - ✅ Use: `8, 12, 16, 24, 32, 40, 48, ...`  
+     ❌ Avoid: `7, 11, 13, 15, 25, ...`.
+   - Tailwind helpers: `p-2 (8px)`, `p-4 (16px)`, `p-6 (24px)`, `gap-2 (8px)`, `gap-4 (16px)`, `gap-8 (32px)`.
+
+3. **60/30/10 color rule**
+   - 60%: neutral background (`bg-background`, `bg-card`, `bg-sidebar`).
+   - 30%: complementary foreground (`text-foreground`, `text-muted-foreground`, borders, subtle UI).
+   - 10%: accent/brand (`bg-primary`, `text-primary`, `bg-accent`) for CTAs and highlights only.
+   - Prevent visual stress: don’t spam accent colors everywhere.
+
+4. **Clean visual structure**
+   - Group related elements visually and keep consistent gaps (8pt grid).
+   - Align content within cards, dialogs, and panels.
+   - Simplicity over flashiness: clarity and usability first.
+
+#### Foundation – Tailwind v4 + shadcn-svelte
+
+- Use Tailwind v4 features already wired in `src/routes/layout.css`:
+  - `@import 'tailwindcss';`
+  - `@theme inline { ... }` design tokens.
+  - OKLCH colors for `--background`, `--foreground`, `--primary`, etc.
+- Modern browser features only; no v3-era `@tailwind base` or manual `content` arrays.
+- Use container queries and new utilities where they add real responsiveness; avoid over-complication.
+
+#### Typography Implementation
+
+- Map the 4-size/2-weight system into Tailwind classes (e.g., `text-3xl font-semibold` for Size 1, `text-sm font-normal` for Size 4) and keep these mappings consistent across components.
+- Use shadcn-svelte typography patterns and variants instead of ad-hoc text styles.
+- For numeric-heavy UI, prefer a mono variant (via `--font-mono` tokens) where it aids readability.
+- Leverage `data-slot` attributes on shadcn-svelte primitives when styling specific parts (e.g., titles vs descriptions) instead of brittle descendant selectors.
+
+#### 8pt Grid – Implementation Details
+
+- When adding or modifying spacing:
+  - ✅ DO: `p-4`, `px-6`, `py-8`, `gap-4`, `space-y-2`, etc.
+  - ❌ DON’T: `p-[13px]`, `mt-[17px]`, `gap-[15px]`.
+- Use Tailwind v4 spacing utilities instead of arbitrary pixel values unless you have a very specific design reason.
+- Verify responsive states preserve the 8/4 rhythm (e.g., `md:gap-6` instead of `md:gap-[22px]`).
+
+#### 60/30/10 Color Rule – Implementation
+
+- Map to existing tokens in `layout.css`:
+  - Neutral 60%: `--background`, `--card`, `--sidebar`.
+  - Complementary 30%: `--foreground`, `--muted-foreground`, `--border`.
+  - Accent 10%: `--primary`, `--accent`, `--ring`, and chart variables `--chart-1`–`--chart-5`.
+- Keep accents for:
+  - Primary buttons and primary links.
+  - Key status indicators (e.g., badges, toasts).
+  - Rare, high-attention surfaces.
+- In dark mode (`.dark` scope), keep contrast high and reuse the same 60/30/10 distribution with dark-adapted OKLCH values.
+
+#### Component Architecture (shadcn-svelte)
+
+- Think in **2 layers**:
+  1. Structure & behavior (accessibility, focus, keyboard nav, ARIA).
+  2. Styling (Tailwind classes + tokens).
+- Use `tailwind-variants` configs (CVA-like) for variants and sizes; keep them in the component module and expose a simple API.
+- Use `data-slot` attributes on component parts to:
+  - Style headings, descriptions, icons, and actions independently.
+  - Keep selectors robust even when DOM structure shifts.
+- Prefer extending existing UI primitives in `src/lib/components/ui/*` over creating one-off bespoke components.
+
+#### Visual Hierarchy & Experience Design
+
+- Simplicity over flash: emphasize what matters (primary actions, critical info) using size, weight, and accent—not random colors.
+- Maintain consistent spacing between related elements and clearly separate unrelated groups.
+- Use motion sparingly:
+  - Smooth transitions and micro-interactions that reinforce meaning.
+  - Avoid gratuitous animations that distract from content.
+
+#### Code Review Checklist (shadcn/Tailwind)
+
+Before merging UI changes built with shadcn-svelte + Tailwind v4, verify:
+
+- **Typography**: At most 4 font sizes and 2 weights are used; headings vs body text follow the agreed mapping.
+- **Spacing**: All gaps/margins/paddings are multiples of 4 or 8; no random pixel values.
+- **Colors**: Follows the 60/30/10 rule; accent color usage is <≈10% of the surface.
+- **Tokens**: Colors and fonts come from CSS variables defined in `layout.css` / `@theme`, not hardcoded values.
+- **Architecture**: Components extend shadcn-svelte primitives, use `tailwind-variants` and `cn()`, and leverage `data-slot` where appropriate.
+- **Dark mode & accessibility**: Contrast remains acceptable, focus states are visible, and keyboard navigation remains intact.
+
 ---
 
 ## 4. Touch Points / Key Files

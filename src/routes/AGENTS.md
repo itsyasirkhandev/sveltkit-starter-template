@@ -1,51 +1,42 @@
 # AGENTS Guide - `src/routes/`
 
-> Route tree: pages, layouts, API endpoints.
+> Route tree: pages and layouts.
 
-## 1. Package Identity
-
-`src/routes` contains the SvelteKit route tree. Start with a blank slate and add pages as needed.
-
----
-
-## 2. Route Structure
+## 1. Structure
 
 ```
 src/routes/
-├── +layout.svelte      # Root layout (Toaster, base shell)
-├── +layout.js          # Layout config
+├── +layout.svelte      # Root layout
+├── +layout.js          # Layout config  
 ├── +page.svelte        # Home page
-├── layout.css          # Global styles + Tailwind tokens
-└── api/                # JSON API endpoints
-    └── client-error/   # Error logging endpoint
+└── layout.css          # Tailwind theme tokens
 ```
 
 ---
 
-## 3. Adding Pages
+## 2. Adding Pages
 
-**Simple page:**
 ```
-src/routes/about/
-└── +page.svelte
-```
-
-**Page with data loading:**
-```
-src/routes/products/
-├── +page.svelte
-└── +page.server.ts     # load() function
+src/routes/about/+page.svelte       # /about
+src/routes/blog/[slug]/+page.svelte # /blog/:slug
 ```
 
-**Page with form actions:**
+**With data loading:**
+```typescript
+// +page.server.ts
+export async function load() {
+  return { data: 'value' };
+}
+```
+
+**With form actions:**
 ```typescript
 // +page.server.ts
 import { handleForm } from '$lib/server/forms';
 
 export const actions = {
-  create: async ({ request }) => {
+  submit: async ({ request }) => {
     return handleForm(request, schema, async (data) => {
-      // handle data
       return { success: true };
     });
   }
@@ -54,37 +45,29 @@ export const actions = {
 
 ---
 
-## 4. Protected Routes (When Needed)
+## 3. Auth (When Needed)
 
-When you need auth, create route groups:
+Use `authStore` from `$lib`:
 
-```
-src/routes/
-├── (public)/           # Public pages
-│   └── +layout.svelte  # No auth check
-├── (protected)/        # Auth-required pages
-│   └── +layout.svelte  # Redirect if not logged in
-```
-
-**Protected layout example:**
 ```svelte
 <script lang="ts">
   import { authStore } from '$lib';
-  import { goto } from '$app/navigation';
 
-  $effect(() => {
-    if (!authStore.user) goto('/login');
-  });
+  // Sign in/out
+  await authStore.signIn(email, password);
+  await authStore.signInWithGoogle();
+  await authStore.signOut();
+
+  // Check state
+  if (authStore.user) { /* logged in */ }
 </script>
-
-{#if authStore.user}
-  <slot />
-{/if}
 ```
+
+**Protected routes:** Create layout that checks `authStore.user`
 
 ---
 
-## 5. API Endpoints
+## 4. API Endpoints
 
 ```typescript
 // src/routes/api/items/+server.ts
@@ -93,53 +76,14 @@ import { json } from '@sveltejs/kit';
 export async function GET() {
   return json({ items: [] });
 }
-
-export async function POST({ request }) {
-  const data = await request.json();
-  return json({ success: true });
-}
 ```
 
 ---
 
-## 6. Auth Helpers Available
+## 5. Key Files
 
-Auth logic is ready in `$lib/stores/auth.svelte.ts`:
-
-```svelte
-<script lang="ts">
-  import { authStore } from '$lib';
-
-  // Sign in
-  await authStore.signIn(email, password);
-  await authStore.signInWithGoogle();
-
-  // Sign out
-  await authStore.signOut();
-
-  // Check auth state
-  if (authStore.user) { /* logged in */ }
-</script>
-```
-
-Schemas in `$lib/schemas/index.ts`:
-- `loginSchema` - email + password validation
-- `signUpSchema` - email + password + confirm
-
----
-
-## 7. Key Files
-
-| Purpose | File |
-|---------|------|
-| Root layout | `+layout.svelte` |
-| Global styles | `layout.css` |
-| Home page | `+page.svelte` |
-
----
-
-## 8. Pre-PR Checks
-
-```bash
-npm run check && npm run lint && npm run test
-```
+| File | Purpose |
+|------|---------|
+| `+layout.svelte` | Root layout, Toaster |
+| `layout.css` | Tailwind theme |
+| `+page.svelte` | Home page |

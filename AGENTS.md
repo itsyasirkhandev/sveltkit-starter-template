@@ -6,7 +6,7 @@
 
 - **Type**: Single SvelteKit app (no monorepo)
 - **Stack**: SvelteKit 2, Svelte 5 runes, TypeScript 5 (strict), Firebase 12, Tailwind CSS 4, shadcn-svelte, Zod
-- **Sub-guides**: `src/lib/AGENTS.md` and `src/routes/AGENTS.md`
+- **Sub-guides**: `src/lib/AGENTS.md`, `src/routes/AGENTS.md`, `src/lib/components/ui/AGENTS.md`
 
 ---
 
@@ -29,89 +29,87 @@ npm run build         # Production build
 
 ```
 src/
-├── lib/                    # Core library (see src/lib/AGENTS.md)
-│   ├── components/ui/      # shadcn-svelte components (see ui/AGENTS.md)
+├── lib/
+│   ├── components/ui/      # Empty - add shadcn components on demand
 │   ├── firebase/           # Firestore helpers
-│   ├── server/             # Server utilities (forms.ts)
-│   ├── stores/             # Svelte 5 rune stores
-│   └── schemas/            # Zod schemas
-├── routes/                 # Route tree (see src/routes/AGENTS.md)
-│   ├── (auth)/             # Public auth pages (login)
-│   ├── (app)/              # Protected app pages (dashboard)
+│   ├── server/             # forms.ts utility
+│   ├── stores/             # auth.svelte.ts (auth logic ready)
+│   └── schemas/            # Login/signup Zod schemas
+├── routes/
+│   ├── +page.svelte        # Home page (blank slate)
+│   ├── layout.css          # Tailwind theme tokens
 │   └── api/                # API endpoints
 └── hooks.server.ts         # Server hooks
 ```
 
 ---
 
-## 4. Core Conventions
+## 4. What's Included
 
-- **Svelte 5 runes**: Use `$state`, `$derived`, `$effect` in all new code
-- **TypeScript strict**: No `any` types, explicit return types
-- **Tailwind only**: No custom CSS files, use utility classes
-- **Firebase via helpers**: Never call Firebase SDK directly from routes/components
-- **Zod validation**: All forms and API inputs validated with Zod schemas
-
----
-
-## 5. Security
-
-- **Never commit secrets**: `.env` is gitignored, use `.env.example` as template
-- **Firebase config**: Client keys in `.env` with `PUBLIC_` prefix
-- **Firestore rules**: Update `firestore.rules` when adding collections
+| Feature | Location | Status |
+|---------|----------|--------|
+| Firebase/Firestore helpers | `$lib/firebase/` | Ready |
+| Auth store (sign in/out) | `$lib/stores/auth.svelte.ts` | Ready |
+| Auth schemas (Zod) | `$lib/schemas/` | Ready |
+| Form handler | `$lib/server/forms.ts` | Ready |
+| shadcn-svelte config | `components.json` | Ready (add components on demand) |
+| Tailwind theme | `layout.css` | Ready |
 
 ---
 
-## 6. JIT Index (What to Open)
+## 5. Core Conventions
 
-### Key Files
-- Firebase init: `src/lib/firebase.ts`
-- Firestore helpers: `src/lib/firebase/firestore.ts`
-- Form handler: `src/lib/server/forms.ts`
-- Auth store: `src/lib/stores/auth.svelte.ts`
-- Auth schemas: `src/lib/schemas/index.ts`
-- Dashboard: `src/routes/(app)/dashboard/+page.svelte`
+- **Svelte 5 runes**: Use `$state`, `$derived`, `$effect`
+- **TypeScript strict**: No `any` types
+- **Tailwind only**: No custom CSS files
+- **Firebase via helpers**: Never call SDK directly in routes
 
-### Search Commands (Windows)
+---
+
+## 6. Security
+
+- **Never commit secrets**: `.env` is gitignored
+- **Firebase config**: Use `PUBLIC_` prefix for client keys
+- **Firestore rules**: Update when adding collections
+
+---
+
+## 7. Adding Features
+
+### Add UI Components
 ```bash
-npx rg -n "pattern" src                    # Generic search
-npx rg -n "\+page\.svelte" src/routes      # Find pages
-npx rg -n "z\.object" src/lib              # Find Zod schemas
+npx shadcn-svelte@latest add button card input form
 ```
 
----
+### Add Auth UI (when needed)
+Use `authStore` from `$lib`:
+```svelte
+<script lang="ts">
+  import { authStore } from '$lib';
+  await authStore.signIn(email, password);
+  await authStore.signInWithGoogle();
+</script>
+```
 
-## 7. Definition of Done
-
-- [ ] `npm run check && npm run lint && npm run test` all green
-- [ ] New features follow existing patterns (resources, stores, routes)
-- [ ] No hardcoded secrets or API keys
-- [ ] Firestore rules updated if new collections added
-
----
-
-## 8. LEVER Optimization Framework
-
-> "The best code is no code. The second best code is code that already exists."
-
-Before implementing any feature, apply LEVER:
-
-- **L**everage existing helpers (`firebase/firestore.ts`, `server/forms.ts`)
-- **E**xtend before creating - add fields/methods to existing code
-- **V**erify through reactivity - let Svelte runes handle state updates
-- **E**liminate duplication - one source of truth per concern
-- **R**educe complexity - fewer files, more reuse
-
-**Decision rule**: If extending existing code takes <50% effort of creating new, extend.
-
-See `src/lib/AGENTS.md` for detailed optimization patterns.
+### Add Firestore Resources
+Create in `$lib/server/resources/[name].ts` using helpers from `$lib/firebase/firestore.ts`
 
 ---
 
-## 9. AI Agent Rules
+## 8. LEVER Framework
 
-1. **Read AGENTS.md files first** - root + relevant sub-guide
-2. **Apply LEVER** - always check if existing code can be extended
-3. **Keep business logic in lib** - not in routes or components
-4. **Test your changes** - run all checks before declaring done
-5. **Use descriptive logs when debugging**: `console.log('[module-name] context:', data)`
+> "The best code is no code."
+
+- **L**everage existing helpers
+- **E**xtend before creating
+- **V**erify through Svelte reactivity
+- **E**liminate duplication
+- **R**educe complexity
+
+---
+
+## 9. Pre-PR Checks
+
+```bash
+npm run check && npm run lint && npm run test
+```

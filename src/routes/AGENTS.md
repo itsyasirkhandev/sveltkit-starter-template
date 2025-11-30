@@ -1,10 +1,10 @@
 # AGENTS Guide - `src/routes/`
 
-> Route tree: pages, layouts, API endpoints, auth flow.
+> Route tree: pages, layouts, API endpoints.
 
 ## 1. Package Identity
 
-`src/routes` contains the SvelteKit route tree with two protected groups: `(auth)` for public auth pages and `(app)` for authenticated pages.
+`src/routes` contains the SvelteKit route tree. Start with a blank slate and add pages as needed.
 
 ---
 
@@ -16,49 +16,36 @@ src/routes/
 ├── +layout.js          # Layout config
 ├── +page.svelte        # Home page
 ├── layout.css          # Global styles + Tailwind tokens
-├── (auth)/             # Public auth routes
-│   ├── +layout.svelte  # Redirects logged-in users away
-│   └── login/          # Login page
-├── (app)/              # Protected routes
-│   ├── +layout.svelte  # Redirects guests to /login
-│   └── dashboard/      # Dashboard page
 └── api/                # JSON API endpoints
     └── client-error/   # Error logging endpoint
 ```
 
 ---
 
-## 3. Route Groups
+## 3. Adding Pages
 
-### `(auth)` - Public Auth Pages
-- Layout redirects authenticated users to `/dashboard`
-- Add new auth pages here: `register/`, `forgot-password/`
-
-### `(app)` - Protected Pages  
-- Layout redirects unauthenticated users to `/login`
-- Add all app features here: `settings/`, `profile/`, `[your-feature]/`
-
----
-
-## 4. Adding New Pages
-
-**Protected page** (copy from `dashboard/`):
+**Simple page:**
 ```
-src/routes/(app)/my-feature/
-├── +page.svelte        # UI
-└── +page.server.ts     # Optional: load/actions
+src/routes/about/
+└── +page.svelte
 ```
 
-**With server actions**:
+**Page with data loading:**
+```
+src/routes/products/
+├── +page.svelte
+└── +page.server.ts     # load() function
+```
+
+**Page with form actions:**
 ```typescript
 // +page.server.ts
 import { handleForm } from '$lib/server/forms';
-import { itemSchema, createItem } from '$lib/server/resources/items';
 
 export const actions = {
   create: async ({ request }) => {
-    return handleForm(request, itemSchema, async (data) => {
-      await createItem(data);
+    return handleForm(request, schema, async (data) => {
+      // handle data
       return { success: true };
     });
   }
@@ -67,36 +54,77 @@ export const actions = {
 
 ---
 
+## 4. Protected Routes (When Needed)
+
+When you need auth, create route groups:
+
+```
+src/routes/
+├── (public)/           # Public pages
+│   └── +layout.svelte  # No auth check
+├── (protected)/        # Auth-required pages
+│   └── +layout.svelte  # Redirect if not logged in
+```
+
+**Protected layout example:**
+```svelte
+<script lang="ts">
+  import { authStore } from '$lib';
+  import { goto } from '$app/navigation';
+
+  $effect(() => {
+    if (!authStore.user) goto('/login');
+  });
+</script>
+
+{#if authStore.user}
+  <slot />
+{/if}
+```
+
+---
+
 ## 5. API Endpoints
 
-Create new APIs in `src/routes/api/[name]/+server.ts`:
-
 ```typescript
+// src/routes/api/items/+server.ts
 import { json } from '@sveltejs/kit';
-import { listItems } from '$lib/server/resources/items';
 
 export async function GET() {
-  const items = await listItems();
-  return json(items);
+  return json({ items: [] });
 }
 
 export async function POST({ request }) {
   const data = await request.json();
-  // validate and create...
   return json({ success: true });
 }
 ```
 
 ---
 
-## 6. DO / DON'T
+## 6. Auth Helpers Available
 
-| DO | DON'T |
-|----|-------|
-| Use `(app)` group for protected pages | Put auth pages outside groups |
-| Delegate to `$lib/server/resources` | Write business logic in routes |
-| Use `handleForm` for form actions | Parse FormData manually |
-| Keep pages thin, stores fat | Duplicate state in components |
+Auth logic is ready in `$lib/stores/auth.svelte.ts`:
+
+```svelte
+<script lang="ts">
+  import { authStore } from '$lib';
+
+  // Sign in
+  await authStore.signIn(email, password);
+  await authStore.signInWithGoogle();
+
+  // Sign out
+  await authStore.signOut();
+
+  // Check auth state
+  if (authStore.user) { /* logged in */ }
+</script>
+```
+
+Schemas in `$lib/schemas/index.ts`:
+- `loginSchema` - email + password validation
+- `signUpSchema` - email + password + confirm
 
 ---
 
@@ -106,9 +134,7 @@ export async function POST({ request }) {
 |---------|------|
 | Root layout | `+layout.svelte` |
 | Global styles | `layout.css` |
-| Auth guard | `(auth)/+layout.svelte` |
-| App guard | `(app)/+layout.svelte` |
-| Page example | `(app)/dashboard/+page.svelte` |
+| Home page | `+page.svelte` |
 
 ---
 
@@ -117,5 +143,3 @@ export async function POST({ request }) {
 ```bash
 npm run check && npm run lint && npm run test
 ```
-
-After route changes, run `npm run dev` and verify pages load without errors.

@@ -6,6 +6,7 @@
 
 ```
 src/lib/
+├── __tests__/         # Vitest unit tests
 ├── components/ui/     # Add shadcn on demand
 ├── firebase/          # Firestore helpers
 ├── server/            # forms.ts
@@ -148,7 +149,7 @@ Usage:
 | Centralize | All calls via `$lib/firebase/` |
 | Transactions | Use for multi-doc atomic updates |
 | Security Rules | Update `firestore.rules` for new collections |
-| Indexing | Add to `firestore.indexes.json` for queries |
+| Indexing | Add indexes via Firebase Console for complex queries |
 | Pagination | Use query cursors (startAfter), not offset |
 | Offline | Handle gracefully with loading states |
 | Batch Writes | Use for bulk operations (max 500) |

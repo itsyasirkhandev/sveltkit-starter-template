@@ -28,6 +28,7 @@ npm run build         # Production build
 ```
 src/
 ├── lib/
+│   ├── __tests__/          # Vitest tests
 │   ├── components/ui/      # Add shadcn components on demand
 │   ├── firebase/           # Firestore helpers
 │   ├── server/             # forms.ts utility
@@ -36,10 +37,13 @@ src/
 │   └── utils.ts            # cn() helper
 ├── routes/
 │   ├── +page.svelte        # Home page
-│   ├── +layout.svelte      # Root layout
+│   ├── +layout.svelte      # Root layout (SEO meta tags)
+│   ├── +error.svelte       # Error/404 page
 │   └── layout.css          # Tailwind theme
 └── hooks.server.ts         # Error handling
 ```
+
+**Root files:** `.env.example` (Firebase config template), `firebase.json`, `firestore.rules`
 
 ---
 

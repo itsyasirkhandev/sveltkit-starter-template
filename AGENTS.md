@@ -18,6 +18,7 @@ From repo root (`sveltekit-fullstack-template`):
 npm install           # Install all dependencies
 npm run dev           # Start dev server (Vite + SvelteKit)
 
+
 npm run check         # Typecheck (svelte-check + TS)
 npm run lint          # ESLint over repo
 npm run test          # Vitest test suite
@@ -26,7 +27,7 @@ npm run build         # Production build
 npm run preview       # Preview production build
 ```
 
-Always run `npm run check`, `npm run lint`, and `npm run test` before declaring work "done".
+Always run `npm run check`, `npm run lint`, and `npm run test` before declaring work "done"; for non-trivial changes, also run `npm run dev` alongside `npm run dev:check` to smoke-test key routes.
 
 ---
 
@@ -90,7 +91,7 @@ Open the files these commands point to; **do not** copy large code blocks blindl
 
 ## 6. Definition of Done
 
-- `npm run check`, `npm run lint`, and `npm run test` are all green (no TODOs left in failures/warnings).
+- `npm run check`, `npm run lint`, and `npm run test` are all green (no TODOs left in failures/warnings), and dev runtime smoke checks via `npm run dev` + `npm run dev:check` show no `RUNTIME-CHECK-FAIL`, `(SERVER-RUNTIME-ERROR)`, or `(CLIENT-RUNTIME-ERROR)` output for affected routes.
 - New features follow the canonical patterns:
   - Firestore resources: mirror `src/lib/server/resources/todos.ts`.
   - Stores: mirror `src/lib/stores/*.svelte.ts` with Svelte 5 runes.
@@ -107,7 +108,7 @@ Open the files these commands point to; **do not** copy large code blocks blindl
 - Keep business logic in `$lib/server/resources` and stores, not in Svelte components or route files.
 - When debugging, add explicit, labeled logs (e.g., `console.log('(NO $) [todos-store] state:', { ... })`) and remove them once fixed.
 - For any non-trivial change, finish by running:  
-  `npm run check && npm run lint && npm run test`.
+  `npm run check && npm run lint && npm run test`, then start `npm run dev` and in another terminal run `npm run dev:check`; treat any `RUNTIME-CHECK-FAIL`, `(SERVER-RUNTIME-ERROR)`, or `(CLIENT-RUNTIME-ERROR)` output as a failing check to fix before completion.
 </coding_guidelines>
 
 Always tell the user which step you are on.

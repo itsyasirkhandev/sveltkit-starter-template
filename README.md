@@ -83,6 +83,14 @@ Open [http://localhost:5173](http://localhost:5173) to see:
 - **Component demonstrations** using shadcn-svelte
 - **Clean Slate theme** in both light and dark modes
 
+With the dev server running, you can also run a small runtime smoke test in another terminal:
+
+```bash
+npm run dev:check
+```
+
+This pings a set of core routes (`/`, `/login`, `/dashboard`, `/todos` by default) and fails if the dev server is unreachable or returns 4xx/5xx responses.
+
 ## Project Structure
 
 ```
@@ -252,6 +260,7 @@ toast.promise(saveData(), {
 | Command                | Description                  |
 | ---------------------- | ---------------------------- |
 | `npm run dev`          | Start development server     |
+| `npm run dev:check`    | Runtime smoke test against the running dev server (port/route health) |
 | `npm run build`        | Build for production         |
 | `npm run preview`      | Preview production build     |
 | `npm run check`        | Run TypeScript/Svelte checks |
@@ -357,6 +366,21 @@ service cloud.firestore {
   }
 }
 ```
+
+## Docs & AGENT workflow
+
+This template is designed to work well for both human developers and AI agents (e.g. when using Graphite MCP and Svelte MCP in your tooling).
+
+- Root rules and workflows: `AGENTS.md`  
+  → how to run checks, when to use `npm run dev:check`, and expectations for Definition of Done.
+- Library-specific rules: `src/lib/AGENTS.md`  
+  → Firebase, Firestore resources, stores, patterns, and Tailwind/shadcn UI guidelines.
+- Route-specific rules: `src/routes/AGENTS.md`  
+  → Route structure, auth groups, API conventions, and runtime checks.
+- Docs workspace: `docs/`  
+  → see `docs/README.md` for the feature lifecycle (`research` → `planned` → `active` → `completed`) and `docs/AGENTS.md` for how agents should plan in spec mode and keep feature docs in sync with Graphite stacks.
+
+If you are using AI assistants with this repo, point them to these files first so they follow the same workflows for checks, docs, and branch/PR management.
 
 ## License
 

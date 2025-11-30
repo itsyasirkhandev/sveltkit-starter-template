@@ -8,7 +8,6 @@ A minimal SvelteKit starter template with Firebase backend and Tailwind CSS. Bui
 - **SvelteKit 2** with SSR/SSG
 - **Firebase** Authentication & Firestore helpers (ready to use)
 - **Tailwind CSS 4** with theme tokens
-- **shadcn-svelte** configured (add components on demand)
 - **TypeScript** strict mode
 - **Zod** schema validation
 
@@ -45,7 +44,7 @@ PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 src/
 ├── lib/
-│   ├── components/ui/      # Add shadcn components here
+│   ├── components/         # Custom components
 │   ├── firebase/           # Firestore CRUD helpers
 │   ├── server/             # Form handling utility
 │   ├── stores/             # Auth store (ready)
@@ -88,15 +87,6 @@ await updateDocument('collection', id, { name: 'Updated' });
 await deleteDocument('collection', id);
 ```
 
-### Add UI Components
-
-```bash
-npx shadcn-svelte@latest add button
-npx shadcn-svelte@latest add card
-npx shadcn-svelte@latest add input
-npx shadcn-svelte@latest add form
-```
-
 ### Form Validation
 
 ```typescript
@@ -134,7 +124,7 @@ This template includes `AGENTS.md` files for AI coding assistants:
 - `AGENTS.md` - Root guide
 - `src/lib/AGENTS.md` - Library patterns
 - `src/routes/AGENTS.md` - Routing guide
-- `src/lib/components/ui/AGENTS.md` - UI guide
+- `src/lib/components/AGENTS.md` - Design system & component patterns
 
 ## License
 

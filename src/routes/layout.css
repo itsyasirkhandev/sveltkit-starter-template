@@ -192,64 +192,7 @@
 	}
 }
 
-/* Custom priority colors */
-@layer components {
-	/* High priority - Red */
-	[data-priority='high'] {
-		--badge-bg: 0 85% 65%;
-		--badge-fg: 0 0% 100%;
-	}
 
-	/* Medium priority - Amber/Orange */
-	[data-priority='medium'] {
-		--badge-bg: 35 95% 60%;
-		--badge-fg: 30 30% 20%;
-	}
-
-	/* Low priority - Green (matching primary) */
-	[data-priority='low'] {
-		--badge-bg: 135 55% 52%;
-		--badge-fg: 0 0% 100%;
-	}
-
-	/* Fix dropdown and popover backgrounds */
-	[data-bits-menu-content],
-	[data-bits-popover-content],
-	[data-bits-dropdown-menu-content],
-	[data-slot='dropdown-menu-content'],
-	[data-slot='popover-content'] {
-		background: hsl(var(--popover)) !important;
-		backdrop-filter: blur(12px);
-		border: 1px solid hsl(var(--border));
-		box-shadow:
-			0 10px 40px -10px rgba(0, 0, 0, 0.15),
-			0 4px 20px -4px rgba(0, 0, 0, 0.08);
-	}
-
-	/* Ensure dropdown items are visible */
-	[data-bits-menu-item],
-	[data-bits-dropdown-menu-item] {
-		color: hsl(var(--popover-foreground));
-	}
-
-	/* Dark mode dropdown fixes */
-	.dark [data-bits-menu-content],
-	.dark [data-bits-popover-content],
-	.dark [data-bits-dropdown-menu-content],
-	.dark [data-slot='dropdown-menu-content'],
-	.dark [data-slot='popover-content'] {
-		background: hsl(var(--popover)) !important;
-		border-color: hsl(var(--border));
-		box-shadow:
-			0 10px 40px -10px rgba(0, 0, 0, 0.6),
-			0 4px 20px -4px rgba(0, 0, 0, 0.4);
-	}
-
-	/* Additional specificity for dropdown menus */
-	.bg-popover {
-		background: hsl(var(--popover)) !important;
-	}
-}
 
 /* Smooth transitions and animations */
 @layer utilities {

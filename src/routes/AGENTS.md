@@ -1,191 +1,150 @@
 # AGENTS Guide - `src/routes/`
 
-> Route tree: pages and layouts.
+> Pages, layouts, and routing.
 
-## 1. Structure
+## Navigation
+
+| Guide | When to Use |
+|-------|-------------|
+| [../lib/AGENTS.md](../lib/AGENTS.md) | Library overview |
+| [../lib/components/AGENTS.md](../lib/components/AGENTS.md) | UI components |
+| [../lib/server/AGENTS.md](../lib/server/AGENTS.md) | Form actions |
+| [../lib/schemas/AGENTS.md](../lib/schemas/AGENTS.md) | Validation |
+
+---
+
+## Structure
 
 ```
 src/routes/
-├── +layout.svelte      # Root layout
-├── +layout.js          # Layout config  
-├── +page.svelte        # Home page
-└── layout.css          # Tailwind theme tokens
+├── +layout.svelte    # Root layout
+├── +page.svelte      # Home (/)
+├── +error.svelte     # Error page
+├── layout.css        # Tailwind theme
+└── [feature]/        # Feature routes
 ```
 
 ---
 
-## 2. Adding Pages
+## Adding Pages
 
 ```
-src/routes/about/+page.svelte       # /about
-src/routes/blog/[slug]/+page.svelte # /blog/:slug
+routes/about/+page.svelte           → /about
+routes/blog/[slug]/+page.svelte     → /blog/:slug
+routes/api/items/+server.ts         → /api/items
 ```
 
-**With data loading:**
+---
+
+## Page with Data
+
 ```typescript
 // +page.server.ts
-export async function load() {
-  return { data: 'value' };
+import { error } from '@sveltejs/kit';
+
+export async function load({ params }) {
+  const item = await getItem(params.id);
+  if (!item) throw error(404, 'Not found');
+  return { item };
 }
 ```
 
-**With form actions:**
+```svelte
+<!-- +page.svelte -->
+<script lang="ts">
+  let { data } = $props();
+</script>
+<h1>{data.item.name}</h1>
+```
+
+---
+
+## Form Actions
+
 ```typescript
 // +page.server.ts
 import { handleForm } from '$lib/server/forms';
+import { contactSchema } from '$lib/schemas';
 
 export const actions = {
-  submit: async ({ request }) => {
-    return handleForm(request, schema, async (data) => {
-      return { success: true };
+  default: async (event) => {
+    return handleForm(event, contactSchema, async (data) => {
+      await sendEmail(data);
     });
-  }
+  },
 };
 ```
 
----
-
-## 3. Auth (When Needed)
-
-Use `authStore` from `$lib`:
-
 ```svelte
-<script lang="ts">
-  import { authStore } from '$lib';
-
-  // Sign in/out
-  await authStore.signIn(email, password);
-  await authStore.signInWithGoogle();
-  await authStore.signOut();
-
-  // Check state
-  if (authStore.user) { /* logged in */ }
-</script>
-```
-
-**Protected routes:** Create layout that checks `authStore.user`
-
----
-
-## 4. API Endpoints
-
-```typescript
-// src/routes/api/items/+server.ts
-import { json } from '@sveltejs/kit';
-
-export async function GET() {
-  return json({ items: [] });
-}
-```
-
----
-
-## 5. Key Files
-
-| File | Purpose |
-|------|---------|
-| `+layout.svelte` | Root layout, Toaster |
-| `layout.css` | Tailwind theme |
-| `+page.svelte` | Home page |
-
----
-
-## 6. SSR vs CSR Decision
-
-| Use Server (`+page.server.ts`) | Use Client (`+page.svelte`) |
-|--------------------------------|-----------------------------|
-| Sensitive data/API keys | User interactions |
-| SEO-critical content | Real-time updates |
-| Initial data load | After-load mutations |
-| Form actions | Animations/transitions |
-
----
-
-## 7. Progressive Enhancement
-
-Forms work without JavaScript:
-
-```svelte
+<!-- +page.svelte -->
 <script lang="ts">
   import { enhance } from '$app/forms';
+  let { form } = $props();
 </script>
 
-<!-- Works without JS, enhanced with JS -->
-<form method="POST" action="?/submit" use:enhance>
-  <input name="email" type="email" required />
+<form method="POST" use:enhance>
+  <input name="email" value={form?.data?.email ?? ''} />
+  {#if form?.errors?.email}<span class="text-destructive">{form.errors.email}</span>{/if}
   <button>Submit</button>
 </form>
 ```
 
 ---
 
-## 8. Load Function Pattern
+## Protected Routes
+
+```svelte
+<!-- +layout.svelte for protected section -->
+<script lang="ts">
+  import { authStore } from '$lib';
+  import { goto } from '$app/navigation';
+  
+  $effect(() => {
+    if (!authStore.loading && !authStore.user) goto('/login');
+  });
+</script>
+
+{#if authStore.user}
+  {@render children()}
+{/if}
+```
+
+---
+
+## API Endpoints
 
 ```typescript
-// +page.server.ts
-import { error } from '@sveltejs/kit';
+// routes/api/items/+server.ts
+import { json, error } from '@sveltejs/kit';
 
-export async function load({ params, locals }) {
-  // Guard clause
-  if (!params.id) throw error(400, 'ID required');
-  
-  const item = await getItem(params.id);
-  if (!item) throw error(404, 'Not found');
-  
-  return { item };
+export async function GET() {
+  return json(await listItems());
+}
+
+export async function POST({ request }) {
+  const body = await request.json();
+  const id = await createItem(body);
+  return json({ id }, { status: 201 });
 }
 ```
 
 ---
 
-## 9. SEO Implementation
+## SEO
 
 ```svelte
-<script lang="ts">
-  let { data } = $props();
-</script>
-
 <svelte:head>
-  <title>{data.title} | App Name</title>
+  <title>{data.title} | App</title>
   <meta name="description" content={data.description} />
-  <meta property="og:title" content={data.title} />
-  <meta property="og:description" content={data.description} />
-  <link rel="canonical" href={data.canonicalUrl} />
 </svelte:head>
 ```
 
 ---
 
-## 10. Performance Rules
+## SSR vs Client
 
-- Minimize `use:enhance` re-renders
-- Use `{#key}` blocks for forced component updates
-- Implement lazy loading for images
-- Use dynamic imports for heavy components:
-  ```typescript
-  const HeavyComponent = await import('./HeavyComponent.svelte');
-  ```
-- Prefer SSR over client-side fetching
-- Use `prerender` for static pages
-
----
-
-## 11. Error Pages
-
-```
-src/routes/
-├── +error.svelte      # Global error page
-├── +layout.svelte     # Error boundary
-└── [feature]/
-    └── +error.svelte  # Feature-specific errors
-```
-
-```svelte
-<!-- +error.svelte (Svelte 5 syntax) -->
-<script lang="ts">
-  import { page } from '$app/state';
-</script>
-
-<h1>{page.status}</h1>
-<p>{page.error?.message}</p>
-```
+| Server (`+page.server.ts`) | Client (`+page.svelte`) |
+|----------------------------|-------------------------|
+| API keys, secrets | User interactions |
+| SEO content | Real-time updates |
+| Initial data | Animations |

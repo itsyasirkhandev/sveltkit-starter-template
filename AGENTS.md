@@ -61,6 +61,8 @@ Always run `npm run check`, `npm run lint`, and `npm run test` before declaring 
 - Routes, layouts, groups, API endpoints, global styles: `src/routes/`  
   → [see `src/routes/AGENTS.md`](src/routes/AGENTS.md)
 - Tooling & config: `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`.
+- Feature docs, research, and planning: `docs/`  
+  → see `docs/README.md` and `docs/AGENTS.md` for feature lifecycle, research docs, and Graphite MCP-aware workflows.
 
 ### Quick Find Commands (Windows, from repo root)
 
@@ -98,6 +100,7 @@ Open the files these commands point to; **do not** copy large code blocks blindl
   - Routes: follow `(auth)` / `(app)` groups and todos/dashboard examples.
 - UI is **not** generic shadcn: Tailwind classes are customized to this app’s visual language.
 - Legacy paths are removed, not left commented out or half-working.
+- For substantial features or refactors, a research or feature doc exists under `docs/features/*` and is kept in the correct folder (`research` → `planned` → `active` → `completed`) across the lifecycle.
 
 ---
 
@@ -109,6 +112,8 @@ Open the files these commands point to; **do not** copy large code blocks blindl
 - When debugging, add explicit, labeled logs (e.g., `console.log('(NO $) [todos-store] state:', { ... })`) and remove them once fixed.
 - For any non-trivial change, finish by running:  
   `npm run check && npm run lint && npm run test`, then start `npm run dev` and in another terminal run `npm run dev:check`; treat any `RUNTIME-CHECK-FAIL`, `(SERVER-RUNTIME-ERROR)`, or `(CLIENT-RUNTIME-ERROR)` output as a failing check to fix before completion.
+- If a Svelte MCP/code-checker is available in the environment (e.g., a Svelte autofix tool), run it against any modified `.svelte` files and address reported issues before considering the work "done".
+- For non-trivial work, use spec mode to propose a plan and, when appropriate, tie it to a research or feature doc under `docs/features/*`. If the Graphite MCP is installed, use it to create and manage the corresponding stack/PRs instead of raw CLI commands, and keep the docs in sync with that state.
 </coding_guidelines>
 
 Always tell the user which step you are on.

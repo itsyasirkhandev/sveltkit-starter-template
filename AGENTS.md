@@ -1,121 +1,117 @@
-<coding_guidelines>
 # AGENTS Guide (Root)
+
+> **Template**: SvelteKit + Firebase starter for AI-assisted development.
 
 ## 1. Project Snapshot
 
-- **Repo type**: Single SvelteKit app (not a monorepo; no workspaces or multiple apps).
-- **Stack**: SvelteKit 2, Svelte 5 runes, TypeScript 5 (strict), Firebase 12, Tailwind CSS 4, shadcn-svelte, Zod 4, Vitest 2.
-- **Structure**: Route tree under `src/routes`, core library-patterns under `src/lib`.
-- **Sub-guides**: See `src/lib/AGENTS.md` and `src/routes/AGENTS.md` for area-specific rules.
+- **Type**: Single SvelteKit app (no monorepo)
+- **Stack**: SvelteKit 2, Svelte 5 runes, TypeScript 5 (strict), Firebase 12, Tailwind CSS 4, shadcn-svelte, Zod
+- **Sub-guides**: `src/lib/AGENTS.md` and `src/routes/AGENTS.md`
 
 ---
 
-## 2. Root Setup & DX Commands
-
-From repo root (`sveltekit-fullstack-template`):
+## 2. Quick Start
 
 ```bash
-npm install           # Install all dependencies
-npm run dev           # Start dev server (Vite + SvelteKit)
-
-
-npm run check         # Typecheck (svelte-check + TS)
-npm run lint          # ESLint over repo
-npm run test          # Vitest test suite
-
+npm install           # Install dependencies
+npm run dev           # Dev server (http://localhost:5173)
+npm run check         # TypeScript + Svelte typecheck
+npm run lint          # ESLint
+npm run test          # Vitest
 npm run build         # Production build
-npm run preview       # Preview production build
 ```
 
-Always run `npm run check`, `npm run lint`, and `npm run test` before declaring work "done"; for non-trivial changes, also run `npm run dev` alongside `npm run dev:check` to smoke-test key routes.
+**Before completing any task**: `npm run check && npm run lint && npm run test`
 
 ---
 
-## 3. Universal Conventions
+## 3. Project Structure
 
-- **Languages & style**: TypeScript strict, Svelte 5 runes for all new Svelte code, Tailwind-only styling with customized shadcn-svelte components.
-- **Code quality**: ESLint + Prettier are the source of truth; do not fight them—fix or configure properly.
-- **Commits**: Use Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, etc.).
-- **Branches**: Create short-lived feature branches from `main`; open PRs back into `main`.
-- **PR requirements**:
-  - Green: `npm run check && npm run lint && npm run test`.
-  - No new dependencies without explicit justification.
-  - Follow patterns from `src/lib/patterns/**` and example routes (auth, dashboard, todos).
-
----
-
-## 4. Security & Secrets
-
-- Never commit real secrets or tokens. `.env` stays local; `.env.example` is the only env file in Git.
-- Firebase config for client use goes in `.env` and `src/lib/firebase.ts` as needed; any truly secret keys (service accounts, admin creds) must **never** land in this repo.
-- Treat Firestore data as potentially sensitive: respect and update `firestore.rules` whenever adding new collections or changing access patterns.
+```
+src/
+├── lib/                    # Core library (see src/lib/AGENTS.md)
+│   ├── components/ui/      # shadcn-svelte components
+│   ├── firebase/           # Firestore helpers
+│   ├── server/resources/   # Firestore resource modules
+│   ├── stores/             # Svelte 5 rune stores
+│   └── schemas/            # Zod schemas
+├── routes/                 # Route tree (see src/routes/AGENTS.md)
+│   ├── (auth)/             # Public auth pages
+│   ├── (app)/              # Protected app pages
+│   └── api/                # API endpoints
+└── hooks.server.ts         # Server hooks
+```
 
 ---
 
-## 5. JIT Index (What to Open, Not What to Paste)
+## 4. Core Conventions
 
-### Package / Area Structure
+- **Svelte 5 runes**: Use `$state`, `$derived`, `$effect` in all new code
+- **TypeScript strict**: No `any` types, explicit return types
+- **Tailwind only**: No custom CSS files, use utility classes
+- **Firebase via helpers**: Never call Firebase SDK directly from routes/components
+- **Zod validation**: All forms and API inputs validated with Zod schemas
 
-- Core library, Firebase, patterns, stores, UI, schemas, tests: `src/lib/`  
-  → [see `src/lib/AGENTS.md`](src/lib/AGENTS.md)
-- Routes, layouts, groups, API endpoints, global styles: `src/routes/`  
-  → [see `src/routes/AGENTS.md`](src/routes/AGENTS.md)
-- Tooling & config: `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`.
+---
 
-### Quick Find Commands (Windows, from repo root)
+## 5. Security
 
-Use `npx rg` (ripgrep via npx) to search:
+- **Never commit secrets**: `.env` is gitignored, use `.env.example` as template
+- **Firebase config**: Client keys in `.env` with `PUBLIC_` prefix
+- **Firestore rules**: Update `firestore.rules` when adding collections
 
+---
+
+## 6. JIT Index (What to Open)
+
+### Key Files
+- Firebase init: `src/lib/firebase.ts`
+- Firestore helpers: `src/lib/firebase/firestore.ts`
+- Resource example: `src/lib/server/resources/todos.ts`
+- Store example: `src/lib/stores/todos.svelte.ts`
+- Route example: `src/routes/(app)/todos/+page.svelte`
+
+### Search Commands (Windows)
 ```bash
-# Generic search
-npx rg -n "functionName" src
-
-# Svelte pages and layouts
-npx rg -n "\+page\.svelte" src/routes
-npx rg -n "\+layout" src/routes
-
-# API routes (SvelteKit endpoints)
-npx rg -n "export const (GET|POST|PUT|DELETE)" src/routes/api
-
-# Firestore resources and schemas
-npx rg -n "todoSchema" src/lib
-npx rg -n "z\.object" src/lib/schemas src/lib/server/resources
-
-# Tests
-npx rg -n "\.test\.ts" src
+npx rg -n "pattern" src                    # Generic search
+npx rg -n "\+page\.svelte" src/routes      # Find pages
+npx rg -n "z\.object" src/lib              # Find Zod schemas
+npx rg -n "export const (GET|POST)" src/routes/api  # Find API routes
 ```
 
-Open the files these commands point to; **do not** copy large code blocks blindly.
+---
+
+## 7. Definition of Done
+
+- [ ] `npm run check && npm run lint && npm run test` all green
+- [ ] New features follow existing patterns (resources, stores, routes)
+- [ ] No hardcoded secrets or API keys
+- [ ] Firestore rules updated if new collections added
 
 ---
 
-## 6. Definition of Done
+## 8. LEVER Optimization Framework
 
-- `npm run check`, `npm run lint`, and `npm run test` are all green (no TODOs left in failures/warnings), and dev runtime smoke checks via `npm run dev` + `npm run dev:check` show no `RUNTIME-CHECK-FAIL`, `(SERVER-RUNTIME-ERROR)`, or `(CLIENT-RUNTIME-ERROR)` output for affected routes.
-- New features follow the canonical patterns:
-  - Firestore resources: mirror `src/lib/server/resources/todos.ts`.
-  - Stores: mirror `src/lib/stores/*.svelte.ts` with Svelte 5 runes.
-  - Routes: follow `(auth)` / `(app)` groups and todos/dashboard examples.
-- UI is **not** generic shadcn: Tailwind classes are customized to this app’s visual language.
-- Legacy paths are removed, not left commented out or half-working.
+> "The best code is no code. The second best code is code that already exists."
 
----
+Before implementing any feature, apply LEVER:
 
-## 7. AI Agent Operating Rules
+- **L**everage existing patterns in `$lib/server/resources` and stores
+- **E**xtend before creating - add fields/methods to existing code
+- **V**erify through reactivity - let Svelte runes handle state updates
+- **E**liminate duplication - one source of truth per concern
+- **R**educe complexity - fewer files, more reuse
 
-- Always start by reading this root `AGENTS.md` **and** the relevant sub-guide (`src/lib/AGENTS.md` or `src/routes/AGENTS.md`).
-- Do not add new state libraries, CSS frameworks, or Firebase access patterns; extend existing ones.
-- Keep business logic in `$lib/server/resources` and stores, not in Svelte components or route files.
-- When debugging, add explicit, labeled logs (e.g., `console.log('(NO $) [todos-store] state:', { ... })`) and remove them once fixed.
-- For any non-trivial change, finish by running:  
-  `npm run check && npm run lint && npm run test`, then start `npm run dev` and in another terminal run `npm run dev:check`; treat any `RUNTIME-CHECK-FAIL`, `(SERVER-RUNTIME-ERROR)`, or `(CLIENT-RUNTIME-ERROR)` output as a failing check to fix before completion.
-</coding_guidelines>
+**Decision rule**: If extending existing code takes <50% effort of creating new, extend.
 
-Always tell the user which step you are on.
+See `src/lib/AGENTS.md` for detailed optimization patterns.
 
 ---
 
-## Bug Fixes
+## 9. AI Agent Rules
 
-When fixing a bug: identify root cause, implement a minimal fix aligned with existing patterns, then verify with `npm run check`, `npm run lint`, and `npm run test`. End with a one-sentence summary using 🚨🚨🚨.
-
+1. **Read AGENTS.md files first** - root + relevant sub-guide
+2. **Apply LEVER** - always check if existing code can be extended
+3. **Keep business logic in lib** - not in routes or components
+4. **Test your changes** - run all checks before declaring done
+5. **Use descriptive logs when debugging**: `console.log('[module-name] context:', data)`

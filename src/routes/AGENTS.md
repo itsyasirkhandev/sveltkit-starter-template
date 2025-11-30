@@ -21,10 +21,9 @@ src/routes/
 │   └── login/          # Login page
 ├── (app)/              # Protected routes
 │   ├── +layout.svelte  # Redirects guests to /login
-│   ├── dashboard/      # Dashboard page
-│   └── todos/          # CRUD example
+│   └── dashboard/      # Dashboard page
 └── api/                # JSON API endpoints
-    └── todos/          # Todos API
+    └── client-error/   # Error logging endpoint
 ```
 
 ---
@@ -37,7 +36,7 @@ src/routes/
 
 ### `(app)` - Protected Pages  
 - Layout redirects unauthenticated users to `/login`
-- Add all app features here: `settings/`, `profile/`
+- Add all app features here: `settings/`, `profile/`, `[your-feature]/`
 
 ---
 
@@ -50,15 +49,15 @@ src/routes/(app)/my-feature/
 └── +page.server.ts     # Optional: load/actions
 ```
 
-**With server actions** (copy from `todos/`):
+**With server actions**:
 ```typescript
 // +page.server.ts
 import { handleForm } from '$lib/server/forms';
-import { createItemSchema, createItem } from '$lib/server/resources/items';
+import { itemSchema, createItem } from '$lib/server/resources/items';
 
 export const actions = {
   create: async ({ request }) => {
-    return handleForm(request, createItemSchema, async (data) => {
+    return handleForm(request, itemSchema, async (data) => {
       await createItem(data);
       return { success: true };
     });
@@ -70,10 +69,9 @@ export const actions = {
 
 ## 5. API Endpoints
 
-Add new APIs by copying `api/todos/+server.ts`:
+Create new APIs in `src/routes/api/[name]/+server.ts`:
 
 ```typescript
-// src/routes/api/[name]/+server.ts
 import { json } from '@sveltejs/kit';
 import { listItems } from '$lib/server/resources/items';
 
@@ -111,23 +109,10 @@ export async function POST({ request }) {
 | Auth guard | `(auth)/+layout.svelte` |
 | App guard | `(app)/+layout.svelte` |
 | Page example | `(app)/dashboard/+page.svelte` |
-| CRUD example | `(app)/todos/+page.svelte` |
-| API example | `api/todos/+server.ts` |
 
 ---
 
-## 8. Search Commands
-
-```bash
-npx rg -n "\+page\.svelte" src/routes     # All pages
-npx rg -n "\+layout" src/routes           # All layouts
-npx rg -n "export const actions" src/routes  # Server actions
-npx rg -n "export const (GET|POST)" src/routes/api  # API handlers
-```
-
----
-
-## 9. Pre-PR Checks
+## 8. Pre-PR Checks
 
 ```bash
 npm run check && npm run lint && npm run test

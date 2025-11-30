@@ -30,14 +30,14 @@ npm run build         # Production build
 ```
 src/
 ├── lib/                    # Core library (see src/lib/AGENTS.md)
-│   ├── components/ui/      # shadcn-svelte components
+│   ├── components/ui/      # shadcn-svelte components (see ui/AGENTS.md)
 │   ├── firebase/           # Firestore helpers
-│   ├── server/resources/   # Firestore resource modules
+│   ├── server/             # Server utilities (forms.ts)
 │   ├── stores/             # Svelte 5 rune stores
 │   └── schemas/            # Zod schemas
 ├── routes/                 # Route tree (see src/routes/AGENTS.md)
-│   ├── (auth)/             # Public auth pages
-│   ├── (app)/              # Protected app pages
+│   ├── (auth)/             # Public auth pages (login)
+│   ├── (app)/              # Protected app pages (dashboard)
 │   └── api/                # API endpoints
 └── hooks.server.ts         # Server hooks
 ```
@@ -67,16 +67,16 @@ src/
 ### Key Files
 - Firebase init: `src/lib/firebase.ts`
 - Firestore helpers: `src/lib/firebase/firestore.ts`
-- Resource example: `src/lib/server/resources/todos.ts`
-- Store example: `src/lib/stores/todos.svelte.ts`
-- Route example: `src/routes/(app)/todos/+page.svelte`
+- Form handler: `src/lib/server/forms.ts`
+- Auth store: `src/lib/stores/auth.svelte.ts`
+- Auth schemas: `src/lib/schemas/index.ts`
+- Dashboard: `src/routes/(app)/dashboard/+page.svelte`
 
 ### Search Commands (Windows)
 ```bash
 npx rg -n "pattern" src                    # Generic search
 npx rg -n "\+page\.svelte" src/routes      # Find pages
 npx rg -n "z\.object" src/lib              # Find Zod schemas
-npx rg -n "export const (GET|POST)" src/routes/api  # Find API routes
 ```
 
 ---
@@ -96,7 +96,7 @@ npx rg -n "export const (GET|POST)" src/routes/api  # Find API routes
 
 Before implementing any feature, apply LEVER:
 
-- **L**everage existing patterns in `$lib/server/resources` and stores
+- **L**everage existing helpers (`firebase/firestore.ts`, `server/forms.ts`)
 - **E**xtend before creating - add fields/methods to existing code
 - **V**erify through reactivity - let Svelte runes handle state updates
 - **E**liminate duplication - one source of truth per concern

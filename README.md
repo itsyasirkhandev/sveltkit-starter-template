@@ -44,7 +44,8 @@ PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 src/
 ├── lib/
-│   ├── components/         # Custom components
+│   ├── __tests__/          # Vitest unit tests
+│   ├── components/         # Custom UI components
 │   ├── firebase/           # Firestore CRUD helpers
 │   ├── server/             # Form handling utility
 │   ├── stores/             # Auth store (ready)
@@ -53,6 +54,7 @@ src/
 ├── routes/
 │   ├── +page.svelte        # Home page
 │   ├── +layout.svelte      # Root layout
+│   ├── +error.svelte       # Error/404 page
 │   └── layout.css          # Tailwind theme
 ```
 
@@ -121,10 +123,17 @@ toast.error('Failed');
 
 This template includes `AGENTS.md` files for AI coding assistants:
 
-- `AGENTS.md` - Root guide
-- `src/lib/AGENTS.md` - Library patterns
-- `src/routes/AGENTS.md` - Routing guide
-- `src/lib/components/AGENTS.md` - Design system & component patterns
+| Guide | Purpose |
+|-------|---------|
+| `AGENTS.md` | Root guide, core rules |
+| `src/lib/AGENTS.md` | Library overview |
+| `src/lib/components/AGENTS.md` | Design system, UI patterns |
+| `src/lib/firebase/AGENTS.md` | Firestore CRUD, queries |
+| `src/lib/stores/AGENTS.md` | Svelte 5 state management |
+| `src/lib/schemas/AGENTS.md` | Zod validation |
+| `src/lib/server/AGENTS.md` | Form actions, resources |
+| `src/lib/__tests__/AGENTS.md` | Vitest testing |
+| `src/routes/AGENTS.md` | Pages, layouts, routing |
 
 ## License
 

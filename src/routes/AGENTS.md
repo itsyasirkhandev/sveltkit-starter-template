@@ -112,4 +112,12 @@ npm run check && npm run lint && npm run test
 ```
 
 If you add a new API or complex server action, consider adding/expanding tests under `src/lib/__tests__/` to cover the underlying resource logic.
+
+---
+
+## 8. Runtime & Route Health Checks
+
+- After changing routes, start `npm run dev` and in another terminal run `npm run dev:check` to ping `/`, `/login`, `/dashboard`, `/todos` (and any other configured routes).
+- Treat any `RUNTIME-CHECK-FAIL` log lines or `(SERVER-RUNTIME-ERROR)` / `(CLIENT-RUNTIME-ERROR)` messages from the dev server as failures to fix before shipping.
+- When you add new top-level routes that should be smoke-tested, update `scripts/dev-runtime-check.js` to include them.
 </coding_guidelines>

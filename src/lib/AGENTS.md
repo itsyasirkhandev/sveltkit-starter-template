@@ -218,6 +218,67 @@ Before merging UI changes built with shadcn-svelte + Tailwind v4, verify:
 - **Architecture**: Components extend shadcn-svelte primitives, use `tailwind-variants` and `cn()`, and leverage `data-slot` where appropriate.
 - **Dark mode & accessibility**: Contrast remains acceptable, focus states are visible, and keyboard navigation remains intact.
 
+### 3.9 Firebase / Firestore Guidelines (for Agents)
+
+The app already has Firebase + Firestore wiring under `src/lib/firebase*` and `$lib/server/resources/*`. When extending or using Firebase, follow these rules:
+
+#### 3.9.1 Project Structure & Responsibilities
+
+- Keep **all Firebase initialization** in `src/lib/firebase.ts` and related helpers (e.g., `firebase/firestore.ts`); do not re-init Firebase in random modules.
+- Create **dedicated resource modules per collection** under `src/lib/server/resources/*` (e.g., `todos.ts` → `todos` collection); mirror this pattern instead of ad-hoc Firestore calls.
+- Keep Firestore access **server-side or in resource helpers**; routes and components should call resources/stores, not the SDK directly.
+- Use **environment variables** (and `.env.example`) for Firebase config per environment; never hard-code API keys or project IDs in source.
+
+#### 3.9.2 Firestore Data Modeling & Naming
+
+- Use **plural nouns** for collections (e.g., `users`, `todos`, `bookings`), matching how `todos` is modeled.
+- Prefer **descriptive document IDs** when you control them (e.g., `user-${uid}`, `booking-${timestamp}`), or use Firestore auto-IDs where natural.
+- Group related data logically (e.g., keep user-related subcollections under `users/{userId}` when it improves queries and security rules).
+- Before adding a new collection, ask: *can this be an extra field/subcollection on an existing one?* Keep the model simple.
+
+#### 3.9.3 Firestore Access Patterns
+
+- Centralize reads/writes in helpers (e.g., `listTodos`, `createTodo`):
+  - ✅ DO: expose functions like `getUserById`, `listBookingsForUser` from a single resource module.
+  - ❌ DON’T: repeat query logic in multiple places.
+- Use **transactions or batch writes** when multiple documents must update atomically (e.g., counters, cross-document invariants).
+- Design queries to be **index-friendly**:
+  - Filter + order on the same fields whenever possible.
+  - Reuse existing indexes in `firestore.indexes.json` before adding new ones.
+- For lists, use **query cursors** (startAfter, limit) for pagination instead of fetching entire collections.
+
+#### 3.9.4 Error Handling & Resilience
+
+- Implement **error handling in one place per concern**:
+  - In resources: catch Firestore errors, log them clearly, and return typed error results.
+  - At the UI layer: use a shared toast/notification pattern (e.g., `svelte-sonner`) so all Firebase errors look and behave consistently.
+- When adding new Firebase calls, decide:
+  - What should happen on failure? (retry, show message, fall back?)
+  - How do we surface this to the user without leaking sensitive details?
+- Avoid swallowing errors silently; log them with a clear prefix and context so agents can trace issues quickly.
+
+#### 3.9.5 Security Rules & Auth
+
+- Treat Firestore rules (`firestore.rules`) as part of the feature:
+  - Whenever you add a new collection or access pattern, update rules accordingly.
+  - Enforce ownership and role checks at the rules level where possible.
+- Keep auth-aware reads/writes behind **resource helpers** that take the current user as input instead of reading auth state globally.
+- Never rely solely on client-side checks for sensitive operations; validate permissions server-side or via rules.
+
+#### 3.9.6 Performance & Cost
+
+- Minimize reads/writes in hot paths:
+  - Prefer querying exactly what you need over fetching broad collections and filtering in memory.
+  - Cache or memoize frequently-used derived data in stores instead of re-querying.
+- Use **offline persistence** and snapshot listeners thoughtfully (where supported in your helpers) to keep UI real-time without spamming reads.
+- Monitor query shapes that might explode in cost (unbounded collections, highly dynamic where-clauses) and refactor before they become a problem.
+
+#### 3.9.7 Testing & Tooling
+
+- For non-trivial Firestore logic, add **unit tests** under `src/lib/__tests__` that exercise resource functions with mocked Firestore.
+- When adding new collections or rules-critical flows, consider using the **Firebase emulator** in local testing (outside this template) to validate security rules and behavior end-to-end.
+- Keep tests focused on resource behavior (inputs/outputs, edge cases) rather than on low-level SDK calls.
+
 ### 3.8 Code Optimization Principles & Extended Thinking Framework (LEVER)
 
 These rules apply across **resources**, **stores**, **routes**, and **UI components** in this SvelteKit + Firebase template.

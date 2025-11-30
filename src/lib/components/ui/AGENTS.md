@@ -133,3 +133,108 @@ const className = cn(
   <Button type="submit">Submit</Button>
 </form>
 ```
+
+---
+
+## 7. Shadcn Color System
+
+```css
+/* All available color tokens */
+--background / --foreground       /* Page background */
+--card / --card-foreground        /* Card surfaces */
+--popover / --popover-foreground  /* Dropdowns/modals */
+--primary / --primary-foreground  /* Primary actions */
+--secondary / --secondary-foreground /* Secondary */
+--muted / --muted-foreground      /* Subtle elements */
+--accent / --accent-foreground    /* Highlights */
+--destructive / --destructive-foreground /* Danger */
+--border                          /* Borders */
+--input                           /* Input borders */
+--ring                            /* Focus rings */
+--radius                          /* Border radius */
+```
+
+---
+
+## 8. Svelte Transitions
+
+```svelte
+<script>
+  import { fade, slide, fly, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
+  
+  let visible = $state(true);
+</script>
+
+{#if visible}
+  <div transition:fade={{ duration: 200, easing: cubicOut }}>
+    Fading content
+  </div>
+{/if}
+
+{#if visible}
+  <div in:fly={{ y: 20, duration: 300 }} out:fade>
+    Fly in, fade out
+  </div>
+{/if}
+```
+
+---
+
+## 9. Accessibility Checklist
+
+- [ ] Semantic HTML (`button`, `nav`, `main`, `article`)
+- [ ] ARIA labels for icons/non-text elements
+- [ ] Keyboard navigation (Tab, Enter, Escape)
+- [ ] Focus management (`bind:this` + `.focus()`)
+- [ ] Color contrast (use theme tokens)
+- [ ] Screen reader testing
+
+```svelte
+<!-- Good: Accessible button with icon -->
+<button aria-label="Close dialog">
+  <XIcon aria-hidden="true" />
+</button>
+
+<!-- Good: Focus management -->
+<script>
+  let inputEl: HTMLInputElement;
+  
+  $effect(() => {
+    if (isOpen) inputEl?.focus();
+  });
+</script>
+<input bind:this={inputEl} />
+```
+
+---
+
+## 10. Responsive Design
+
+Mobile-first approach:
+
+```svelte
+<div class="
+  flex flex-col gap-2
+  sm:flex-row sm:gap-4
+  lg:gap-6
+">
+  <!-- Stacks on mobile, row on sm+, larger gap on lg+ -->
+</div>
+
+<div class="
+  grid grid-cols-1
+  md:grid-cols-2
+  lg:grid-cols-3
+  gap-4
+">
+  <!-- 1 col mobile, 2 col tablet, 3 col desktop -->
+</div>
+```
+
+### Breakpoints
+- `sm`: 640px
+- `md`: 768px
+- `lg`: 1024px
+- `xl`: 1280px
+- `2xl`: 1536px

@@ -1,123 +1,136 @@
-<coding_guidelines>
-# AGENTS Guide – `src/routes/`
+# AGENTS Guide - `src/routes/`
+
+> Route tree: pages, layouts, API endpoints, auth flow.
 
 ## 1. Package Identity
 
-- `src/routes` is the **route tree** for this SvelteKit app: public/auth pages, authenticated app pages, JSON APIs, root layouts, and global styles.
-- Auth behavior is enforced by group layouts: `(auth)/` for public-auth flows, `(app)/` for authenticated-only routes.
+`src/routes` contains the SvelteKit route tree with two protected groups: `(auth)` for public auth pages and `(app)` for authenticated pages.
 
 ---
 
-## 2. Setup & Run (Route-Focused)
+## 2. Route Structure
 
-Run commands from repo root while developing routes:
-
-```bash
-npm run dev     # Live dev server; use for route and UX work
-npm run check   # Typecheck load/actions and Svelte files
-npm run test    # Hit resource logic via API/pages as needed
+```
+src/routes/
+├── +layout.svelte      # Root layout (Toaster, base shell)
+├── +layout.js          # Layout config
+├── +page.svelte        # Home page
+├── layout.css          # Global styles + Tailwind tokens
+├── (auth)/             # Public auth routes
+│   ├── +layout.svelte  # Redirects logged-in users away
+│   └── login/          # Login page
+├── (app)/              # Protected routes
+│   ├── +layout.svelte  # Redirects guests to /login
+│   ├── dashboard/      # Dashboard page
+│   └── todos/          # CRUD example
+└── api/                # JSON API endpoints
+    └── todos/          # Todos API
 ```
 
-Keep `npm run dev` open while editing pages and endpoints.
+---
+
+## 3. Route Groups
+
+### `(auth)` - Public Auth Pages
+- Layout redirects authenticated users to `/dashboard`
+- Add new auth pages here: `register/`, `forgot-password/`
+
+### `(app)` - Protected Pages  
+- Layout redirects unauthenticated users to `/login`
+- Add all app features here: `settings/`, `profile/`
 
 ---
 
-## 3. Patterns & Conventions (MOST IMPORTANT)
+## 4. Adding New Pages
 
-### 3.1 Route Structure
-
-- Root app shell and styles:
-  - `src/routes/+layout.svelte` – Root layout (includes Toaster and base shell).
-  - `src/routes/+layout.js` – Root layout config.
-  - `src/routes/layout.css` – Global styles & Tailwind design tokens.
-- Public/auth group: `src/routes/(auth)/*`
-  - `src/routes/(auth)/+layout.svelte` – Redirects authenticated users away from auth pages.
-  - `src/routes/(auth)/login/+page.svelte` – Login page using `authStore`.
-- Authenticated app group: `src/routes/(app)/*`
-  - `src/routes/(app)/+layout.svelte` – Redirects unauthenticated users to `/login`.
-  - `src/routes/(app)/dashboard/+page.svelte` – Example protected page.
-  - `src/routes/(app)/todos/+page.svelte` – Example CRUD page.
-  - `src/routes/(app)/todos/+page.server.ts` – Uses todos resource + generic form handler.
-- API endpoints: `src/routes/api/*`
-  - `src/routes/api/todos/+server.ts` – JSON API backed by todos resource.
-
-### 3.2 DO / DON’T – Pages & Layouts
-
-- ✅ **DO** add new authenticated pages under `src/routes/(app)/<feature>/+page.svelte`, copying the pattern from `dashboard/+page.svelte`.
-- ✅ **DO** implement new CRUD features by copying `src/routes/(app)/todos/+page.svelte` and `+page.server.ts` and wiring them to a new resource under `$lib/server/resources`.
-- ❌ **DON’T** put authenticated pages directly under `src/routes/` without the `(app)` group and its layout guards.
-- ✅ **DO** rely on `(auth)/+layout.svelte` and `(app)/+layout.svelte` for redirects instead of sprinkling auth checks across every page.
-
-### 3.3 Server Actions, Load, and APIs
-
-- ✅ **DO** use the generic `handleForm` helper from `$lib/server/forms` inside `+page.server.ts` files (see todos for reference).
-- ✅ **DO** keep API logic thin in `src/routes/api/*/+server.ts` by delegating to `$lib/server/resources/*`.
-- ❌ **DON’T** access Firebase SDK directly in route files; talk to Firestore via resource modules.
-
----
-
-## 4. Touch Points / Key Files
-
-- Global shell: `src/routes/+layout.svelte`, `src/routes/+layout.js`.
-- Global design: `src/routes/layout.css`.
-- Home page: `src/routes/+page.svelte`.
-- Auth group layout: `src/routes/(auth)/+layout.svelte`.
-- Login page: `src/routes/(auth)/login/+page.svelte`.
-- App group layout: `src/routes/(app)/+layout.svelte`.
-- Dashboard page: `src/routes/(app)/dashboard/+page.svelte`.
-- Todos CRUD page: `src/routes/(app)/todos/+page.svelte`.
-- Todos server actions: `src/routes/(app)/todos/+page.server.ts`.
-- Todos JSON API: `src/routes/api/todos/+server.ts`.
-
-These are your canonical examples for new routes, layouts, forms, and APIs.
-
----
-
-## 5. JIT Index Hints (Search Commands)
-
-From repo root:
-
-```bash
-# All page components
-npx rg -n "\+page\.svelte" src/routes
-
-# Layouts (root and group)
-npx rg -n "\+layout" src/routes
-
-# Load functions and actions
-npx rg -n "export const (load|actions)" src/routes
-
-# API route handlers
-npx rg -n "export const (GET|POST|PUT|DELETE)" src/routes/api
+**Protected page** (copy from `dashboard/`):
+```
+src/routes/(app)/my-feature/
+├── +page.svelte        # UI
+└── +page.server.ts     # Optional: load/actions
 ```
 
-Use these to jump straight to examples before adding anything new.
+**With server actions** (copy from `todos/`):
+```typescript
+// +page.server.ts
+import { handleForm } from '$lib/server/forms';
+import { createItemSchema, createItem } from '$lib/server/resources/items';
+
+export const actions = {
+  create: async ({ request }) => {
+    return handleForm(request, createItemSchema, async (data) => {
+      await createItem(data);
+      return { success: true };
+    });
+  }
+};
+```
 
 ---
 
-## 6. Common Gotchas
+## 5. API Endpoints
 
-- Don’t bypass `(auth)`/`(app)` group layouts for auth flows; use them to centralize redirect logic.
-- Don’t parse `FormData` manually in `+page.server.ts` unless you have a very good reason—prefer `handleForm` + Zod schemas in `$lib/server/resources`.
-- Keep UI concerns in `.svelte` files and move reusable business logic into `$lib/server/resources` and stores.
+Add new APIs by copying `api/todos/+server.ts`:
+
+```typescript
+// src/routes/api/[name]/+server.ts
+import { json } from '@sveltejs/kit';
+import { listItems } from '$lib/server/resources/items';
+
+export async function GET() {
+  const items = await listItems();
+  return json(items);
+}
+
+export async function POST({ request }) {
+  const data = await request.json();
+  // validate and create...
+  return json({ success: true });
+}
+```
 
 ---
 
-## 7. Pre-PR Checks (Route Changes)
+## 6. DO / DON'T
 
-Before merging changes that touch `src/routes/`:
+| DO | DON'T |
+|----|-------|
+| Use `(app)` group for protected pages | Put auth pages outside groups |
+| Delegate to `$lib/server/resources` | Write business logic in routes |
+| Use `handleForm` for form actions | Parse FormData manually |
+| Keep pages thin, stores fat | Duplicate state in components |
+
+---
+
+## 7. Key Files
+
+| Purpose | File |
+|---------|------|
+| Root layout | `+layout.svelte` |
+| Global styles | `layout.css` |
+| Auth guard | `(auth)/+layout.svelte` |
+| App guard | `(app)/+layout.svelte` |
+| Page example | `(app)/dashboard/+page.svelte` |
+| CRUD example | `(app)/todos/+page.svelte` |
+| API example | `api/todos/+server.ts` |
+
+---
+
+## 8. Search Commands
+
+```bash
+npx rg -n "\+page\.svelte" src/routes     # All pages
+npx rg -n "\+layout" src/routes           # All layouts
+npx rg -n "export const actions" src/routes  # Server actions
+npx rg -n "export const (GET|POST)" src/routes/api  # API handlers
+```
+
+---
+
+## 9. Pre-PR Checks
 
 ```bash
 npm run check && npm run lint && npm run test
 ```
 
-If you add a new API or complex server action, consider adding/expanding tests under `src/lib/__tests__/` to cover the underlying resource logic.
-
----
-
-## 8. Runtime & Route Health Checks
-
-- After changing routes, start `npm run dev` and in another terminal run `npm run dev:check` to ping `/`, `/login`, `/dashboard`, `/todos` (and any other configured routes).
-- Treat any `RUNTIME-CHECK-FAIL` log lines or `(SERVER-RUNTIME-ERROR)` / `(CLIENT-RUNTIME-ERROR)` messages from the dev server as failures to fix before shipping.
-- When you add new top-level routes that should be smoke-tested, update `scripts/dev-runtime-check.js` to include them.
-</coding_guidelines>
+After route changes, run `npm run dev` and verify pages load without errors.

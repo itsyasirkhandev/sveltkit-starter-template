@@ -28,3 +28,11 @@ Tokens: `src/routes/layout.css` • Class helper: `src/lib/utils.ts` • Token u
 
 ## Pre-PR Checks
 `npm run check && npm run lint && npm run test`
+
+## shadcn/ui with Tailwind v4 Design System Guidelines
+- **Typography (4 sizes, 2 weights):** 4 font sizes (large heading → small label) and only semibold/regular; keep hierarchy consistent.
+- **8pt grid:** All spacing divisible by 8 or 4 (use Tailwind spacing utilities like `p-4`, `gap-4`, `p-6`); avoid arbitrary px.
+- **60/30/10 color rule:** 60% neutral background, 30% complementary foreground, 10% accent; rely on tokens from `layout.css` (OKLCH) and avoid extra accents.
+- **Tailwind v4 usage:** Use `@import "tailwindcss"` and `@theme` for tokens; prefer OKLCH vars; container queries available; avoid adding custom CSS when utilities suffice.
+- **Component structure:** Follow shadcn/ui patterns (Radix primitives + Tailwind layer); variants via CVA, `data-slot` styling; use New York style defaults; keep logical grouping and alignment.
+- **Common checks:** No more than 4 font sizes/2 weights; spacing respects 8pt grid; accent usage ≤10%; maintain contrast and accessibility; prefer tokens over hardcoded colors.

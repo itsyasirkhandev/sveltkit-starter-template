@@ -1,105 +1,49 @@
 # AGENTS Guide (Root)
 
-> Minimal SvelteKit + Firebase starter for AI-assisted development.
+> Lightweight entrypoint; nearest-folder AGENTS wins.
 
-## Navigation
+## Project Snapshot
+- Single SvelteKit 2 app (Vite) with Svelte 5 runes, TypeScript strict, Tailwind CSS 4, Firebase (Auth/Firestore), Vitest.
+- npm-based; Node >=20; SSR disabled via `src/routes/+layout.js`.
+- Sub-guides below contain details per area.
 
-| Guide | Purpose |
-|-------|---------|
-| [`src/lib/AGENTS.md`](src/lib/AGENTS.md) | Library overview, auth store |
-| [`src/lib/components/AGENTS.md`](src/lib/components/AGENTS.md) | Design system, UI patterns |
-| [`src/lib/firebase/AGENTS.md`](src/lib/firebase/AGENTS.md) | Firestore CRUD, queries |
-| [`src/lib/stores/AGENTS.md`](src/lib/stores/AGENTS.md) | Svelte 5 state management |
-| [`src/lib/schemas/AGENTS.md`](src/lib/schemas/AGENTS.md) | Zod validation |
-| [`src/lib/server/AGENTS.md`](src/lib/server/AGENTS.md) | Form actions, resources |
-| [`src/lib/__tests__/AGENTS.md`](src/lib/__tests__/AGENTS.md) | Vitest testing |
-| [`src/routes/AGENTS.md`](src/routes/AGENTS.md) | Pages, layouts, routing |
+## Root Setup Commands
+- `npm install`
+- `npm run dev`
+- `npm run check`
+- `npm run lint`
+- `npm run test`
+- `npm run build`
 
----
+## Universal Conventions
+- TypeScript strict; prefer `interface`; avoid `any`.
+- Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`); stores live in `.svelte.ts`.
+- Tailwind tokens from `src/routes/layout.css`; merge classes with `cn` (`src/lib/utils.ts`).
+- Formatting: `prettier --check .`; lint: `eslint .`; tests: `npm run test`.
+- Commits: concise conventional style (`feat:`, `fix:`, `chore:`); branches from `main` (feature/*).
 
-## Stack
+## Security & Secrets
+- Copy `.env.example` → `.env`; never commit secrets.
+- PUBLIC_* Firebase keys still sensitive; restrict in Firebase console.
+- Avoid logging PII; remove debug logs before merging.
 
-SvelteKit 2 | Svelte 5 runes | TypeScript | Firebase | Tailwind CSS 4 | Zod
+## JIT Index (open these, don’t paste full files)
+### Directory Map
+- Library hub: `src/lib/` → [src/lib/AGENTS.md](src/lib/AGENTS.md)
+- Firebase helpers: `src/lib/firebase/` → [src/lib/firebase/AGENTS.md](src/lib/firebase/AGENTS.md)
+- Stores: `src/lib/stores/` → [src/lib/stores/AGENTS.md](src/lib/stores/AGENTS.md)
+- Schemas: `src/lib/schemas/` → [src/lib/schemas/AGENTS.md](src/lib/schemas/AGENTS.md)
+- Server utils: `src/lib/server/` → [src/lib/server/AGENTS.md](src/lib/server/AGENTS.md)
+- Components/design tokens: `src/lib/components/` → [src/lib/components/AGENTS.md](src/lib/components/AGENTS.md)
+- Tests: `src/lib/__tests__/` → [src/lib/__tests__/AGENTS.md](src/lib/__tests__/AGENTS.md)
+- Routes/UI: `src/routes/` → [src/routes/AGENTS.md](src/routes/AGENTS.md)
 
-## Commands
+### Quick Find Commands
+- Find runes stores: `npm exec --yes ripgrep -n "\\$state" src/lib/stores`
+- Firestore usage: `npm exec --yes ripgrep -n "getDocuments\\(|subscribeToCollection" src`
+- Form handlers/schemas: `npm exec --yes ripgrep -n "handleForm" src`
+- Token usage: `npm exec --yes ripgrep -n "bg-background|text-foreground" src/routes`
 
-```bash
-npm run dev      # Dev server
-npm run check    # TypeScript
-npm run lint     # ESLint  
-npm run test     # Vitest
-npm run build    # Production
-```
-
----
-
-## Core Rules
-
-1. **Svelte 5 runes** - `$state`, `$derived`, `$effect`, `$props`
-2. **TypeScript strict** - No `any`, use interfaces
-3. **Tailwind only** - No custom CSS, use semantic tokens
-4. **Firebase via helpers** - Never import SDK directly
-
----
-
-## Project Structure
-
-```
-src/
-├── lib/
-│   ├── components/    # UI components
-│   ├── firebase/      # Firestore helpers
-│   ├── stores/        # State (auth.svelte.ts)
-│   ├── schemas/       # Zod validation
-│   ├── server/        # Form handling
-│   └── __tests__/     # Vitest tests
-├── routes/            # Pages & layouts
-└── hooks.server.ts    # Server hooks
-```
-
----
-
-## Naming Conventions
-
-| Type | Convention | Example |
-|------|------------|---------|
-| Files | kebab-case | `auth-form.svelte` |
-| Components | PascalCase | `AuthForm` |
-| Variables | camelCase | `isLoading` |
-| Booleans | is/has/should | `hasError` |
-| Collections | plural | `users` |
-
----
-
-## Error Handling
-
-```typescript
-interface Result<T> { ok: boolean; data?: T; error?: string; }
-
-async function loadData(id: string): Promise<Result<Data>> {
-  if (!id) return { ok: false, error: 'ID required' };
-  try {
-    return { ok: true, data: await fetchData(id) };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Failed' };
-  }
-}
-```
-
----
-
-## Debug Logging
-
-```typescript
-console.log('(IS $) [users] query:', id);   // Firestore (costs money)
-console.log('(NO $) [store] update:', data); // Local (free)
-// ALWAYS remove after fixing
-```
-
----
-
-## Before Completing Tasks
-
-```bash
-npm run check && npm run lint && npm run test
-```
+## Definition of Done
+- `npm run check && npm run lint && npm run test && npm run build`
+- No TODO/debug logs; env ready; tests updated for new/changed behavior.

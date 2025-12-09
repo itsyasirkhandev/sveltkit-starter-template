@@ -1,105 +1,34 @@
-# AGENTS Guide - `src/lib/`
+# AGENTS Guide — `src/lib/`
 
-> Core library: Firebase, stores, schemas, utilities.
+## Package Identity
+Shared library: Firebase init, Firestore helpers, runes stores, schemas, server form utilities, class/merge helper.
 
-## Navigation
+## Setup & Run
+- Use root npm scripts; exports aggregated via `src/lib/index.ts`.
+- Run `npm run prepare` (svelte-kit sync) before `npm run check` if schema/types change.
 
-| Guide | When to Use |
-|-------|-------------|
-| [components/AGENTS.md](components/AGENTS.md) | Building UI |
-| [firebase/AGENTS.md](firebase/AGENTS.md) | Database operations |
-| [stores/AGENTS.md](stores/AGENTS.md) | State management |
-| [schemas/AGENTS.md](schemas/AGENTS.md) | Validation |
-| [server/AGENTS.md](server/AGENTS.md) | Form actions |
-| [__tests__/AGENTS.md](__tests__/AGENTS.md) | Testing |
-| [../routes/AGENTS.md](../routes/AGENTS.md) | Pages & routing |
+## Patterns & Conventions
+- ✅ Re-export through `src/lib/index.ts` for `$lib` imports (e.g., `authStore`, `getDocuments`).
+- ✅ Use `cn` from `src/lib/utils.ts` for class merging.
+- ✅ Keep runes stores in `.svelte.ts`; see `src/lib/stores/auth.svelte.ts` for browser-guarded auth lifecycle.
+- ✅ Firestore calls through `src/lib/firebase/firestore.ts`; reuse `where/orderBy/limit`.
+- ✅ Form handling via `src/lib/server/forms.ts` + schemas from `src/lib/schemas/index.ts`.
+- ❌ Do not import `firebase/app` or `firebase/firestore` directly in routes/components; rely on `$lib/firebase.ts` + helpers.
+- ❌ Do not hand-parse `FormData`; `handleForm` already validates and maps errors.
 
----
+## Touch Points / Key Files
+`src/lib/firebase.ts` • `src/lib/firebase/firestore.ts` • `src/lib/stores/auth.svelte.ts` • `src/lib/schemas/index.ts` • `src/lib/server/forms.ts` • `src/lib/utils.ts` • tests in `src/lib/__tests__`.
 
-## Structure
+## JIT Index Hints
+- Exports: `npm exec --yes ripgrep -n "export .* from" src/lib/index.ts`
+- Runes: `npm exec --yes ripgrep -n "\\$(state|derived|effect)" src/lib`
+- Firestore ops: `npm exec --yes ripgrep -n "getDocuments\\(|addDocument" src/lib`
+- Tests: `npm exec --yes ripgrep -n "describe\\(" src/lib/__tests__`
 
-```
-src/lib/
-├── components/        # UI → components/AGENTS.md
-├── firebase/          # Firestore → firebase/AGENTS.md
-├── stores/            # State → stores/AGENTS.md
-├── schemas/           # Zod → schemas/AGENTS.md
-├── server/            # Forms → server/AGENTS.md
-├── __tests__/         # Tests → __tests__/AGENTS.md
-├── firebase.ts        # Firebase init
-├── index.ts           # Re-exports
-└── utils.ts           # cn() helper
-```
+## Common Gotchas
+- Firebase helpers no-op if not initialized; keep browser guards like `auth.svelte.ts`.
+- `handleForm` error keys mirror schema paths; align form field names.
+- `addDocument` auto-adds timestamps; don’t duplicate `createdAt/updatedAt`.
 
----
-
-## Quick Patterns
-
-### Auth Store (Ready to Use)
-
-```typescript
-import { authStore } from '$lib';
-
-await authStore.signIn(email, password);
-await authStore.signInWithGoogle();
-await authStore.signOut();
-
-// State: authStore.user, authStore.loading, authStore.error
-```
-
-### Create a Store
-
-```typescript
-// stores/items.svelte.ts
-class ItemsStore {
-  items = $state<Item[]>([]);
-  loading = $state(false);
-  count = $derived(this.items.length);
-  
-  async load() {
-    this.loading = true;
-    this.items = await getDocuments<Item>('items');
-    this.loading = false;
-  }
-}
-export const itemsStore = new ItemsStore();
-```
-
-### Create a Resource
-
-```typescript
-// server/resources/items.ts
-import { z } from 'zod';
-import { getDocuments, addDocument } from '$lib/firebase/firestore';
-
-export const itemSchema = z.object({ name: z.string().min(1) });
-export type Item = z.infer<typeof itemSchema> & { id: string };
-
-export const listItems = () => getDocuments<Item>('items');
-export const createItem = (data: z.infer<typeof itemSchema>) => addDocument('items', data);
-```
-
----
-
-## Key Exports from `$lib`
-
-```typescript
-import { 
-  authStore,                    // Auth state
-  getDocuments, addDocument,    // Firestore
-  loginSchema, signUpSchema,    // Validation
-  cn,                           // Class merging
-  toast,                        // Notifications
-} from '$lib';
-```
-
----
-
-## Rules
-
-| DO | DON'T |
-|----|-------|
-| Use `$lib/firebase/firestore` helpers | Import Firebase SDK directly |
-| Use Svelte 5 runes (`$state`) | Use legacy `writable` stores |
-| Validate with Zod schemas | Ad-hoc validation |
-| Use `interface` for objects | Use `type` or `any` |
+## Pre-PR Checks
+`npm run check && npm run lint && npm run test`

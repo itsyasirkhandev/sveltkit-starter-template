@@ -1,150 +1,32 @@
-# AGENTS Guide - `src/routes/`
+# AGENTS Guide — `src/routes/`
 
-> Pages, layouts, and routing.
+## Package Identity
+Client-first SvelteKit pages/layouts; SSR disabled (`src/routes/+layout.js`); Tailwind tokenized UI.
 
-## Navigation
+## Setup & Run
+- Dev: `npm run dev`
+- Build: `npm run build`
+- Lint/check: root scripts; styles auto-loaded via `src/routes/+layout.svelte`.
 
-| Guide | When to Use |
-|-------|-------------|
-| [../lib/AGENTS.md](../lib/AGENTS.md) | Library overview |
-| [../lib/components/AGENTS.md](../lib/components/AGENTS.md) | UI components |
-| [../lib/server/AGENTS.md](../lib/server/AGENTS.md) | Form actions |
-| [../lib/schemas/AGENTS.md](../lib/schemas/AGENTS.md) | Validation |
+## Patterns & Conventions
+- ✅ SEO/meta pattern in `src/routes/+layout.svelte` (Open Graph/Twitter tags).
+- ✅ Error UX from `src/routes/+error.svelte`; reuse for other error pages.
+- ✅ Tokenized styling like `src/routes/+page.svelte` (`bg-background text-foreground`, `min-h-screen`).
+- ✅ Keep SSR toggle centralized (`+layout.js`).
+- ❌ Don’t hardcode colors; use tokens from `src/routes/layout.css`.
+- ❌ Don’t call Firebase directly; use `$lib` stores/resources.
 
----
+## Touch Points / Key Files
+`src/routes/+layout.svelte` • `src/routes/+layout.js` • `src/routes/+page.svelte` • `src/routes/+error.svelte` • `src/routes/layout.css`.
 
-## Structure
+## JIT Index Hints
+- Routes with head blocks: `npm exec --yes ripgrep -n "^<svelte:head>" src/routes`
+- Token usage: `npm exec --yes ripgrep -n "bg-background" src/routes`
+- Error handling: `npm exec --yes ripgrep -n "page.status" src/routes/+error.svelte`
 
-```
-src/routes/
-├── +layout.svelte    # Root layout
-├── +page.svelte      # Home (/)
-├── +error.svelte     # Error page
-├── layout.css        # Tailwind theme
-└── [feature]/        # Feature routes
-```
+## Common Gotchas
+- SSR off means client-side data flows; use stores or browser-safe loads.
+- `Toaster` mounted in layout; don’t duplicate to avoid multiple portals.
 
----
-
-## Adding Pages
-
-```
-routes/about/+page.svelte           → /about
-routes/blog/[slug]/+page.svelte     → /blog/:slug
-routes/api/items/+server.ts         → /api/items
-```
-
----
-
-## Page with Data
-
-```typescript
-// +page.server.ts
-import { error } from '@sveltejs/kit';
-
-export async function load({ params }) {
-  const item = await getItem(params.id);
-  if (!item) throw error(404, 'Not found');
-  return { item };
-}
-```
-
-```svelte
-<!-- +page.svelte -->
-<script lang="ts">
-  let { data } = $props();
-</script>
-<h1>{data.item.name}</h1>
-```
-
----
-
-## Form Actions
-
-```typescript
-// +page.server.ts
-import { handleForm } from '$lib/server/forms';
-import { contactSchema } from '$lib/schemas';
-
-export const actions = {
-  default: async (event) => {
-    return handleForm(event, contactSchema, async (data) => {
-      await sendEmail(data);
-    });
-  },
-};
-```
-
-```svelte
-<!-- +page.svelte -->
-<script lang="ts">
-  import { enhance } from '$app/forms';
-  let { form } = $props();
-</script>
-
-<form method="POST" use:enhance>
-  <input name="email" value={form?.data?.email ?? ''} />
-  {#if form?.errors?.email}<span class="text-destructive">{form.errors.email}</span>{/if}
-  <button>Submit</button>
-</form>
-```
-
----
-
-## Protected Routes
-
-```svelte
-<!-- +layout.svelte for protected section -->
-<script lang="ts">
-  import { authStore } from '$lib';
-  import { goto } from '$app/navigation';
-  
-  $effect(() => {
-    if (!authStore.loading && !authStore.user) goto('/login');
-  });
-</script>
-
-{#if authStore.user}
-  {@render children()}
-{/if}
-```
-
----
-
-## API Endpoints
-
-```typescript
-// routes/api/items/+server.ts
-import { json, error } from '@sveltejs/kit';
-
-export async function GET() {
-  return json(await listItems());
-}
-
-export async function POST({ request }) {
-  const body = await request.json();
-  const id = await createItem(body);
-  return json({ id }, { status: 201 });
-}
-```
-
----
-
-## SEO
-
-```svelte
-<svelte:head>
-  <title>{data.title} | App</title>
-  <meta name="description" content={data.description} />
-</svelte:head>
-```
-
----
-
-## SSR vs Client
-
-| Server (`+page.server.ts`) | Client (`+page.svelte`) |
-|----------------------------|-------------------------|
-| API keys, secrets | User interactions |
-| SEO content | Real-time updates |
-| Initial data | Animations |
+## Pre-PR Checks
+`npm run check && npm run lint && npm run test && npm run build`

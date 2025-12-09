@@ -1,125 +1,31 @@
-# AGENTS Guide - `src/lib/__tests__/`
+# AGENTS Guide — `src/lib/__tests__/`
 
-> Vitest testing patterns.
+## Package Identity
+Vitest suites for forms, schemas, and utilities.
 
-## Navigation
+## Setup & Run
+- All tests: `npm run test`
+- Single file: `npm run test -- src/lib/__tests__/forms.test.ts`
+- Watch: `npm run test:watch`
 
-| Guide | When to Use |
-|-------|-------------|
-| [../AGENTS.md](../AGENTS.md) | What to test |
-| [../schemas/AGENTS.md](../schemas/AGENTS.md) | Schema tests |
-| [../server/AGENTS.md](../server/AGENTS.md) | Form handler tests |
+## Patterns & Conventions
+- ✅ Use `describe/it` with focused assertions (see `forms.test.ts`, `schemas.test.ts`, `utils.test.ts`).
+- ✅ Mock externals via `vi.mock` when needed (`forms.test.ts`).
+- ✅ Shared setup lives in `setup.test.ts`.
+- ❌ Don’t hit live Firebase; mock helpers instead.
+- ❌ Don’t overfit to implementation; assert behavior.
 
----
+## Touch Points / Key Files
+`forms.test.ts` • `schemas.test.ts` • `utils.test.ts` • `setup.test.ts`.
 
-## Commands
+## JIT Index Hints
+- Mocks: `npm exec --yes ripgrep -n "vi.mock" src/lib/__tests__`
+- Schema assertions: `npm exec --yes ripgrep -n "loginSchema" src/lib/__tests__/schemas.test.ts`
+- Form handler tests: `npm exec --yes ripgrep -n "handleForm" src/lib/__tests__/forms.test.ts`
 
-```bash
-npm run test        # Run once
-npm run test:watch  # Watch mode
-```
+## Common Gotchas
+- Keep tests hermetic; avoid shared mutable state.
+- Update tests when schemas or handlers change.
 
----
-
-## Test Structure
-
-```typescript
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-describe('ModuleName', () => {
-  beforeEach(() => { /* setup */ });
-
-  it('should do something', () => {
-    const result = doSomething('input');
-    expect(result).toBe('expected');
-  });
-});
-```
-
----
-
-## Common Assertions
-
-```typescript
-expect(value).toBe(expected);          // Strict equal
-expect(value).toEqual(expected);       // Deep equal
-expect(value).toBeTruthy();
-expect(value).toBeNull();
-expect(arr).toContain(item);
-expect(arr).toHaveLength(3);
-expect(obj).toHaveProperty('key');
-expect(() => fn()).toThrow('error');
-await expect(promise).resolves.toBe(value);
-await expect(promise).rejects.toThrow();
-```
-
----
-
-## Schema Testing
-
-```typescript
-import { loginSchema } from '../schemas';
-
-describe('loginSchema', () => {
-  it('validates correct data', () => {
-    const result = loginSchema.safeParse({
-      email: 'test@example.com',
-      password: 'password123',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects invalid email', () => {
-    const result = loginSchema.safeParse({
-      email: 'invalid',
-      password: 'password123',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-```
-
----
-
-## Mocking
-
-```typescript
-// Mock function
-const callback = vi.fn();
-doSomething(callback);
-expect(callback).toHaveBeenCalledWith('arg');
-
-// Mock return value
-const mockFn = vi.fn().mockReturnValue('value');
-
-// Mock module
-vi.mock('$lib/firebase/firestore', () => ({
-  getDocument: vi.fn().mockResolvedValue({ id: '1', name: 'Test' }),
-}));
-```
-
----
-
-## Async Tests
-
-```typescript
-it('fetches data', async () => {
-  const result = await fetchData();
-  expect(result).toBeDefined();
-});
-
-it('rejects on error', async () => {
-  await expect(failingFn()).rejects.toThrow('Error');
-});
-```
-
----
-
-## Rules
-
-| DO | DON'T |
-|----|-------|
-| Test behavior | Test implementation details |
-| One focus per test | Multiple unrelated assertions |
-| Mock external deps | Make real API calls |
-| Test edge cases | Only test happy path |
+## Pre-PR Checks
+`npm run test && npm run lint`
